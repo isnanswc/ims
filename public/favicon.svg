@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <style>
+      :root {
+        --top-fill: #ffffff;
+        --left-fill: #e4e4e7;
+        --right-fill: #f4f4f5;
+        --stroke-color: #18181b;
+        --tape-color: #71717a;
+        --chip-fill: #d4d4d8;
+        --electric-color: #09090b;
+        --node-color: #09090b;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --top-fill: #18181b;
+          --left-fill: #09090b;
+          --right-fill: #121215;
+          --stroke-color: #52525b;
+          --tape-color: #3f3f46;
+          --chip-fill: #27272a;
+          --electric-color: #ffffff;
+          --node-color: #ffffff;
+        }
+      }
+      .cube-top { fill: var(--top-fill); stroke: var(--stroke-color); stroke-width: 1.5; }
+      .cube-left { fill: var(--left-fill); stroke: var(--stroke-color); stroke-width: 1.5; }
+      .cube-right { fill: var(--right-fill); stroke: var(--stroke-color); stroke-width: 1.5; }
+      .cube-tape { stroke: var(--tape-color); stroke-width: 1.8; }
+      .cube-chip { fill: var(--chip-fill); stroke: var(--stroke-color); stroke-width: 1; }
+      .electric-stream { stroke: var(--electric-color); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .electric-node { fill: var(--node-color); }
+    </style>
+  </defs>
+
+  <!-- 3D Isometric Cyber Cube -->
+  <!-- Top Face -->
+  <polygon points="24,6 40,15 24,24 8,15" class="cube-top" />
+  <!-- Left Face -->
+  <polygon points="8,15 24,24 24,42 8,33" class="cube-left" />
+  <!-- Right Face -->
+  <polygon points="24,24 40,15 40,33 24,42" class="cube-right" />
+
+  <!-- Packaging Tape / Microchip Core -->
+  <line x1="24" y1="6" x2="24" y2="24" class="cube-tape" />
+  <line x1="24" y1="24" x2="24" y2="42" class="cube-tape" />
+  <polygon points="24,11 29,13.5 24,16 19,13.5" class="cube-chip" />
+
+  <!-- Circuit Edges with Electric Highlights -->
+  <path d="M 8,33 L 8,15 L 24,6 L 40,15 L 40,33" class="electric-stream" />
+  <path d="M 24,42 L 24,24 L 40,15" class="electric-stream" />
+
+  <!-- Terminal Nodes -->
+  <circle cx="24" cy="6" r="2" class="electric-node" />
+  <circle cx="8" cy="15" r="2" class="electric-node" />
+  <circle cx="40" cy="15" r="2" class="electric-node" />
+  <circle cx="24" cy="42" r="2" class="electric-node" />
+</svg>

@@ -9,26 +9,26 @@
         <div>
           <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>Daftar Dokumen Transfer Order</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700">
               {{ transactions.length }} Dokumen
             </span>
           </h1>
-          <p class="text-xs text-slate-400">Kelola seluruh arsip Transfer Order (Masuk & Keluar).</p>
+          <p class="text-xs text-zinc-400">Kelola seluruh arsip Transfer Order (Masuk & Keluar).</p>
         </div>
 
         <div class="flex items-center gap-2">
           <button 
             @click="openCreatePage('IN')"
-            class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs shadow-md shadow-emerald-600/20 transition-all"
+            class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs shadow-sm border border-zinc-950 dark:border-white transition-all"
           >
             <ArrowDownLeft class="w-4 h-4" />
             <span>+ Transfer Masuk (IN)</span>
           </button>
           <button 
             @click="openCreatePage('OUT')"
-            class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-semibold text-xs shadow-md shadow-rose-600/20 transition-all"
+            class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-xs border border-zinc-300 dark:border-zinc-700 shadow-sm transition-all"
           >
-            <ArrowUpRight class="w-4 h-4" />
+            <ArrowUpRight class="w-4 h-4 text-rose-500" />
             <span>+ Transfer Keluar (OUT)</span>
           </button>
         </div>
@@ -38,7 +38,7 @@
       <div class="glass-card p-3 space-y-2.5">
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
           <div class="sm:col-span-5 relative">
-            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               v-model="searchQuery" 
               type="text" 
@@ -47,22 +47,22 @@
             />
           </div>
 
-          <div class="sm:col-span-4 flex items-center bg-slate-100/80 dark:bg-slate-800/80 p-0.5 rounded-xl text-xs font-semibold">
+          <div class="sm:col-span-4 flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-0.5 rounded-xl text-xs font-semibold">
             <button 
               @click="selectedTypeFilter = 'ALL'"
-              :class="['flex-1 py-1 rounded-lg transition-all text-center text-xs', selectedTypeFilter === 'ALL' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400']"
+              :class="['flex-1 py-1 rounded-lg transition-all text-center text-xs', selectedTypeFilter === 'ALL' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400']"
             >
               Semua
             </button>
             <button 
               @click="selectedTypeFilter = 'IN'"
-              :class="['flex-1 py-1 rounded-lg transition-all text-center text-xs', selectedTypeFilter === 'IN' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400']"
+              :class="['flex-1 py-1 rounded-lg transition-all text-center text-xs', selectedTypeFilter === 'IN' ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm font-bold' : 'text-zinc-500 dark:text-zinc-400']"
             >
               Masuk (IN)
             </button>
             <button 
               @click="selectedTypeFilter = 'OUT'"
-              :class="['flex-1 py-1 rounded-lg transition-all text-center text-xs', selectedTypeFilter === 'OUT' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400']"
+              :class="['flex-1 py-1 rounded-lg transition-all text-center text-xs', selectedTypeFilter === 'OUT' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm font-bold' : 'text-zinc-500 dark:text-zinc-400']"
             >
               Keluar (OUT)
             </button>
@@ -319,8 +319,10 @@
               @click="saveEntireDocument"
               :disabled="draftItems.length === 0"
               :class="[
-                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow transition-all disabled:opacity-40 disabled:cursor-not-allowed',
-                formHeader.type === 'IN' ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20' : 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/20'
+                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed',
+                formHeader.type === 'IN' 
+                  ? 'bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 border border-zinc-950 dark:border-white' 
+                  : 'bg-rose-600 hover:bg-rose-500 text-white shadow-sm'
               ]"
               title="Tekan Ctrl+Enter untuk simpan cepat"
             >
@@ -332,7 +334,7 @@
         </div>
 
         <!-- Compact Input Fields Grid -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-800 text-xs">
+        <div :class="['grid gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-800 text-xs', formHeader.type === 'IN' ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4']">
           <!-- Tipe Switcher Mini -->
           <div>
             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Tipe TO</label>
@@ -378,12 +380,27 @@
             />
           </div>
 
+          <!-- Default Area Masuk (Hanya untuk TO Masuk) -->
+          <div v-if="formHeader.type === 'IN'">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5" title="Default area rak untuk barang masuk (Default: Staging Area)">
+              Default Area Masuk
+            </label>
+            <select 
+              v-model="formHeader.defaultLocation"
+              class="w-full px-2 py-1 glass-input rounded-lg text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
+            >
+              <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
+                {{ loc.code }} ({{ loc.name }})
+              </option>
+            </select>
+          </div>
+
           <!-- Keterangan Dokumen -->
-          <div>
+          <div :class="formHeader.type === 'IN' ? 'col-span-2 sm:col-span-1' : ''">
             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Keterangan Dokumen</label>
             <input 
               v-model="formHeader.keterangan" 
-              placeholder="Catatan tujuan/toko/vendor"
+              placeholder="Catatan vendor/toko"
               class="w-full px-2.5 py-1 glass-input rounded-lg text-xs"
             />
           </div>
@@ -429,7 +446,7 @@
         <!-- Input Row (Single Clean Horizontal Flow) -->
         <form @submit.prevent="addItemToDraft" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
           <!-- Input Kolom Barang (Dengan Floating Dropdown List di Bawahnya) -->
-          <div class="sm:col-span-6 relative">
+          <div :class="formHeader.type === 'IN' ? 'sm:col-span-5 relative' : 'sm:col-span-6 relative'">
             <div class="relative flex items-center">
               <input 
                 ref="smartInputRef"
@@ -508,12 +525,26 @@
             />
           </div>
 
+          <!-- Pilihan Lokasi Rak (TO Masuk: Rak Masuk, TO Keluar: Rak Asal Pengambilan) -->
+          <div class="sm:col-span-2">
+            <select 
+              v-model="itemLocation"
+              class="w-full px-2 py-1.5 glass-input rounded-lg text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
+              :title="formHeader.type === 'IN' ? 'Pilih lokasi rak masuk untuk item ini (Default: Staging Area)' : 'Pilih rak asal pengambilan (Default: AUTO Picking)'"
+            >
+              <option v-if="formHeader.type === 'OUT'" value="">AUTO (Picking)</option>
+              <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
+                {{ loc.code }}
+              </option>
+            </select>
+          </div>
+
           <!-- Keterangan Item (Tab naturally moves here) -->
-          <div class="sm:col-span-3">
+          <div class="sm:col-span-2">
             <input 
               ref="noteInputRef"
               v-model="itemNote" 
-              placeholder="Catatan baris item..."
+              placeholder="Catatan baris..."
               class="w-full px-2.5 py-1.5 glass-input rounded-lg text-xs"
             />
           </div>
@@ -524,7 +555,7 @@
               ref="addButtonRef"
               type="submit"
               :disabled="!selectedItemObject"
-              class="w-full py-1.5 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed text-white dark:text-zinc-950 rounded-lg text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all flex items-center justify-center gap-1.5"
               title="Tambahkan ke Dokumen"
             >
               <Plus class="w-3.5 h-3.5" />
@@ -584,6 +615,11 @@
                 </th>
                 <th class="py-2 px-3">Keterangan</th>
 
+                <!-- KOLOM AREA RAK -->
+                <th class="py-2 px-3 text-center">
+                  {{ formHeader.type === 'IN' ? 'Area Masuk (Rak)' : 'Rak Pengambilan' }}
+                </th>
+
                 <!-- KOLOM QTY AKTUAL DENGAN KUADRAT PENJUMLAHAN STOK (DI ANTARA KETERANGAN DAN AKSI) -->
                 <th class="py-2 px-3 text-center bg-slate-200/40 dark:bg-slate-800/60 font-black">
                   Qty Aktual (Proyeksi)
@@ -594,7 +630,7 @@
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
               <tr v-if="filteredDraftItems.length === 0">
-                <td colspan="8" class="py-6 text-center text-slate-400 text-xs">
+                <td :colspan="9" class="py-6 text-center text-slate-400 text-xs">
                   Belum ada item dalam dokumen ini. Gunakan kolom Smart Autofill di atas untuk menambahkan.
                 </td>
               </tr>
@@ -615,6 +651,20 @@
                 </td>
                 <td class="py-2 px-3 text-right font-black text-xs text-slate-900 dark:text-white">{{ it.qty }}</td>
                 <td class="py-2 px-3 text-slate-500 dark:text-slate-400 max-w-[160px] truncate">{{ it.keterangan || '-' }}</td>
+
+                <!-- SEL AREA RAK DENGAN DROPDOWN -->
+                <td class="py-2 px-3 text-center">
+                  <select 
+                    v-model="it.locationCode"
+                    class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-700 dark:text-blue-300"
+                    :title="formHeader.type === 'IN' ? 'Ubah lokasi rak tujuan' : 'Ubah rak asal pengambilan'"
+                  >
+                    <option v-if="formHeader.type === 'OUT'" value="AUTO">AUTO (Picking)</option>
+                    <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
+                      {{ loc.code }}
+                    </option>
+                  </select>
+                </td>
 
                 <!-- SEL QTY AKTUAL DENGAN KUADRAT PENJUMLAHAN MINIMALIS -->
                 <td class="py-2 px-3 text-center bg-slate-50/40 dark:bg-slate-800/20 whitespace-nowrap">
@@ -821,6 +871,7 @@
                     <th class="py-2.5 px-3">Kode Item</th>
                     <th class="py-2.5 px-3">Deskripsi Barang</th>
                     <th class="py-2.5 px-3 text-center">Satuan</th>
+                    <th v-if="selectedDetailDoc.type === 'IN'" class="py-2.5 px-3">Area Masuk</th>
                     <th class="py-2.5 px-3 text-right">Qty</th>
                     <th class="py-2.5 px-3">Keterangan</th>
                   </tr>
@@ -832,6 +883,11 @@
                     <td class="py-2 px-3 font-medium">{{ it.deskripsi }}</td>
                     <td class="py-2 px-3 text-center">
                       <span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-600 dark:text-slate-400">{{ it.satuan }}</span>
+                    </td>
+                    <td v-if="selectedDetailDoc.type === 'IN'" class="py-2 px-3 font-semibold text-xs">
+                      <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        {{ it.locationCode || selectedDetailDoc.defaultLocation || 'ZONE-STAGING' }}
+                      </span>
                     </td>
                     <td class="py-2 px-3 text-right font-bold text-emerald-600 dark:text-emerald-400">{{ it.qty }}</td>
                     <td class="py-2 px-3 text-slate-500">{{ it.keterangan || '-' }}</td>
@@ -856,8 +912,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
-import { db, generateAutoTrxCode } from '../database/db';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { db, generateAutoTrxCode, applyTransactionStockToLocations } from '../database/db';
 import Pagination from '../components/Pagination.vue';
 import { 
   ArrowDownLeft, 
@@ -907,13 +963,34 @@ const sortOrder = ref('desc');
 const currentPage = ref(1);
 const pageSize = ref(10);
 
+// Lokasi Gudang State (Default Masuk ke Staging Area)
+const availableLocations = ref([]);
+const itemLocation = ref('ZONE-STAGING');
+
+async function loadLocations() {
+  const locs = await db.locations.toArray();
+  if (locs.length > 0) {
+    availableLocations.value = locs;
+  } else {
+    availableLocations.value = [
+      { code: 'ZONE-STAGING', name: 'Area Transit & Receiving' },
+      { code: 'RAK-A1', name: 'Rak Fast Picking A1' },
+      { code: 'RAK-A2', name: 'Rak Fast Picking A2' },
+      { code: 'RAK-B1', name: 'Rak Logistik B1' },
+      { code: 'RAK-B2', name: 'Rak Logistik B2' },
+      { code: 'ZONE-C1', name: 'Pallet Bulk Storage C1' }
+    ];
+  }
+}
+
 // Create Form State
 const formHeader = ref({
   trxCode: '',
   type: 'IN',
   tanggal: new Date().toISOString().split('T')[0],
   noDocument: '',
-  keterangan: ''
+  keterangan: '',
+  defaultLocation: 'ZONE-STAGING'
 });
 
 // Smart Autofill & Candidate Suggestions State
@@ -1032,60 +1109,57 @@ const filteredAdvancedItems = computed(() => {
 });
 
 // =========================================================================
-// LOGIKA QTY AKTUAL DENGAN KUADRAT PENJUMLAHAN STOK (RUNNING PROJECTION)
+// LOGIKA QTY AKTUAL DENGAN KUADRAT PENJUMLAHAN STOK (CACHED O(1) PROJECTION)
 // =========================================================================
-function getItemStockProjection(item, currentIndex) {
-  const master = props.itemsWithStock.find(m => m.uniqCode === item.uniqCode);
-  let baseDbStock = master ? Number(master.currentStock) || 0 : 0;
+const draftStockProjections = computed(() => {
+  const masterMap = {};
+  for (const m of props.itemsWithStock) {
+    masterMap[m.uniqCode] = Number(m.currentStock) || 0;
+  }
 
-  // JIKA SEDANG EDIT DOKUMEN:
-  // Kurangkan/kembalikan efek dari dokumen yang sedang diedit ini dari baseDbStock,
-  // agar kuantitas yang sudah tersimpan di database tidak dihitung ganda!
   if (isEditingDoc.value && editingDocId.value) {
     const existingSavedDoc = props.transactions.find(t => t.id === editingDocId.value);
     if (existingSavedDoc && existingSavedDoc.items) {
-      const savedQtyForThisItem = existingSavedDoc.items
-        .filter(i => i.uniqCode === item.uniqCode)
-        .reduce((sum, curr) => sum + (Number(curr.qty) || 0), 0);
-
-      if (existingSavedDoc.type === 'IN') {
-        baseDbStock -= savedQtyForThisItem;
-      } else if (existingSavedDoc.type === 'OUT') {
-        baseDbStock += savedQtyForThisItem;
+      for (const i of existingSavedDoc.items) {
+        const q = Number(i.qty) || 0;
+        if (existingSavedDoc.type === 'IN') {
+          masterMap[i.uniqCode] = (masterMap[i.uniqCode] || 0) - q;
+        } else {
+          masterMap[i.uniqCode] = (masterMap[i.uniqCode] || 0) + q;
+        }
       }
     }
   }
 
-  // Hitung akumulasi dari baris-baris SEBELUM currentIndex di tabel draft saat ini:
-  let prevAccumulated = 0;
-  for (let i = 0; i < currentIndex; i++) {
-    const prevItem = draftItems.value[i];
-    if (prevItem && prevItem.uniqCode === item.uniqCode) {
-      prevAccumulated += Number(prevItem.qty) || 0;
-    }
-  }
-
-  const currentLineQty = Number(item.qty) || 0;
   const isTypeIn = formHeader.value.type === 'IN';
+  const runningTrack = { ...masterMap };
+  const map = new Map();
 
-  let stockBefore = 0;
-  let newStock = 0;
-  let superscriptText = '';
+  for (let i = 0; i < draftItems.value.length; i++) {
+    const item = draftItems.value[i];
+    const base = runningTrack[item.uniqCode] || 0;
+    const currentLineQty = Number(item.qty) || 0;
 
-  if (isTypeIn) {
-    stockBefore = baseDbStock + prevAccumulated;
-    newStock = stockBefore + currentLineQty;
-    superscriptText = `+${stockBefore}=${newStock}`;
-  } else {
-    stockBefore = baseDbStock - prevAccumulated;
-    newStock = stockBefore - currentLineQty;
-    superscriptText = `-${stockBefore}=${newStock}`;
+    const stockBefore = base;
+    const newStock = isTypeIn ? stockBefore + currentLineQty : stockBefore - currentLineQty;
+    const superscriptText = isTypeIn ? `+${stockBefore}=${newStock}` : `-${stockBefore}=${newStock}`;
+
+    runningTrack[item.uniqCode] = newStock;
+    map.set(i, {
+      stockBefore,
+      newStock,
+      superscriptText
+    });
   }
 
-  return {
-    stockBefore,
-    newStock,
-    superscriptText
+  return map;
+});
+
+function getItemStockProjection(item, currentIndex) {
+  return draftStockProjections.value.get(currentIndex) || {
+    stockBefore: 0,
+    newStock: 0,
+    superscriptText: ''
   };
 }
 
@@ -1208,6 +1282,9 @@ function addItemToDraft() {
     deskripsi: String(selectedItemObject.value.deskripsi),
     satuan: String(selectedItemObject.value.satuan),
     qty: qty,
+    locationCode: formHeader.value.type === 'IN' 
+      ? (itemLocation.value || formHeader.value.defaultLocation || 'ZONE-STAGING') 
+      : (itemLocation.value || 'AUTO'),
     keterangan: String(itemNote.value || '').trim()
   });
 
@@ -1237,14 +1314,22 @@ async function openCreatePage(type = 'IN', prefilledItems = []) {
   isEditingDoc.value = false;
   editingDocId.value = null;
   const autoCode = await generateAutoTrxCode(type);
+  await loadLocations();
   formHeader.value = {
     trxCode: autoCode,
     type: type,
     tanggal: new Date().toISOString().split('T')[0],
     noDocument: prefilledItems.length > 0 ? `PO-PPIC-${new Date().toISOString().split('T')[0].replace(/-/g, '')}` : '',
-    keterangan: prefilledItems.length > 0 ? 'Pengadaan berdasarkan Rekomendasi PPIC' : ''
+    keterangan: prefilledItems.length > 0 ? 'Pengadaan berdasarkan Rekomendasi PPIC' : '',
+    defaultLocation: 'ZONE-STAGING'
   };
-  draftItems.value = prefilledItems.length > 0 ? JSON.parse(JSON.stringify(prefilledItems)) : [];
+  itemLocation.value = 'ZONE-STAGING';
+  draftItems.value = prefilledItems.length > 0 
+    ? prefilledItems.map(item => ({
+        ...item,
+        locationCode: item.locationCode || 'ZONE-STAGING'
+      })) 
+    : [];
   typedInputText.value = '';
   selectedItemObject.value = null;
   matchingSuggestions.value = [];
@@ -1259,17 +1344,23 @@ async function openCreatePage(type = 'IN', prefilledItems = []) {
 }
 
 // Buka Halaman Edit Dokumen
-function openEditPage(doc) {
+async function openEditPage(doc) {
   isEditingDoc.value = true;
   editingDocId.value = doc.id;
+  await loadLocations();
   formHeader.value = {
     trxCode: doc.trxCode,
     type: doc.type,
     tanggal: doc.tanggal,
     noDocument: doc.noDocument || '',
-    keterangan: doc.keterangan || ''
+    keterangan: doc.keterangan || '',
+    defaultLocation: doc.defaultLocation || 'ZONE-STAGING'
   };
-  draftItems.value = JSON.parse(JSON.stringify(doc.items || []));
+  itemLocation.value = doc.defaultLocation || 'ZONE-STAGING';
+  draftItems.value = (doc.items || []).map(it => ({
+    ...it,
+    locationCode: it.locationCode || doc.defaultLocation || 'ZONE-STAGING'
+  }));
   typedInputText.value = '';
   selectedItemObject.value = null;
   matchingSuggestions.value = [];
@@ -1296,6 +1387,7 @@ function resetToList() {
 async function changeDocType(newType) {
   if (isEditingDoc.value) return;
   formHeader.value.type = newType;
+  itemLocation.value = newType === 'IN' ? (formHeader.value.defaultLocation || 'ZONE-STAGING') : '';
   formHeader.value.trxCode = await generateAutoTrxCode(newType);
 }
 
@@ -1311,19 +1403,27 @@ async function saveEntireDocument() {
   }
 
   try {
-    const cleanItems = JSON.parse(JSON.stringify(draftItems.value));
+    const cleanItems = JSON.parse(JSON.stringify(draftItems.value)).map(it => ({
+      ...it,
+      locationCode: formHeader.value.type === 'IN' ? (it.locationCode || formHeader.value.defaultLocation || 'ZONE-STAGING') : 'ZONE-STAGING'
+    }));
     const docPayload = {
       trxCode: String(formHeader.value.trxCode),
       type: String(formHeader.value.type),
       tanggal: String(formHeader.value.tanggal),
       noDocument: String(formHeader.value.noDocument).trim(),
       keterangan: String(formHeader.value.keterangan || '').trim(),
+      defaultLocation: formHeader.value.type === 'IN' ? (formHeader.value.defaultLocation || 'ZONE-STAGING') : undefined,
       totalItems: cleanItems.length,
       totalQty: Number(totalDraftQty.value) || 0,
       items: cleanItems
     };
 
     if (isEditingDoc.value && editingDocId.value) {
+      const oldDoc = await db.transactions.get(editingDocId.value);
+      if (oldDoc) {
+        await applyTransactionStockToLocations(oldDoc, true);
+      }
       await db.transactions.update(editingDocId.value, {
         ...docPayload,
         updatedAt: new Date().toISOString()
@@ -1334,6 +1434,9 @@ async function saveEntireDocument() {
         createdAt: new Date().toISOString()
       });
     }
+
+    // Terapkan alokasi stok masuk/keluar ke item_locations
+    await applyTransactionStockToLocations(docPayload, false);
 
     resetToList();
     emit('refresh-data');
@@ -1356,8 +1459,13 @@ function openDetailModal(doc) {
 
 async function deleteDoc(doc) {
   if (confirm(`Hapus dokumen "${doc.trxCode}" (No Doc: ${doc.noDocument})?`)) {
-    await db.transactions.delete(doc.id);
-    emit('refresh-data');
+    try {
+      await applyTransactionStockToLocations(doc, true);
+      await db.transactions.delete(doc.id);
+      emit('refresh-data');
+    } catch (err) {
+      alert('Gagal menghapus dokumen: ' + err.message);
+    }
   }
 }
 
@@ -1380,6 +1488,11 @@ function getDraftSortIcon(key) {
   if (draftSortKey.value !== key) return ChevronsUpDown;
   return draftSortOrder.value === 'asc' ? ArrowUp : ArrowDown;
 }
+
+onMounted(async () => {
+  window.addEventListener('keydown', handleGlobalKeydown);
+  await loadLocations();
+});
 
 defineExpose({
   openCreatePage,

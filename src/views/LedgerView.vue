@@ -7,13 +7,13 @@
       <!-- Header List Master Item Ledger -->
       <div class="glass-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 class="text-base sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 class="text-base sm:text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <span>Item Ledger (Buku Besar Mutasi)</span>
-            <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700">
               {{ itemsWithStock.length }} Master Item
             </span>
           </h1>
-          <p class="text-xs text-slate-400 mt-0.5">
+          <p class="text-xs text-zinc-400 mt-0.5">
             Daftar seluruh item barang dan kondisi transaksi persediaan. Klik item untuk membuka halaman audit kartu stok & grafik mutasi.
           </p>
         </div>
@@ -23,7 +23,7 @@
       <div class="glass-card p-3 space-y-2.5">
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
           <div class="sm:col-span-8 relative">
-            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               v-model="catalogSearch" 
               type="text" 
@@ -49,13 +49,13 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
+              <tr class="bg-zinc-100/70 dark:bg-zinc-850/70 border-b border-zinc-200/80 dark:border-zinc-800 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase select-none">
                 <th class="py-2.5 px-3.5">Kode Item (SKU)</th>
                 <th class="py-2.5 px-3.5">Deskripsi Barang</th>
                 <th class="py-2.5 px-3.5 text-center">Satuan</th>
                 <th class="py-2.5 px-3.5 text-center">Tgl Registrasi</th>
-                <th class="py-2.5 px-3.5 text-right text-emerald-600 dark:text-emerald-400">Total Masuk (IN)</th>
-                <th class="py-2.5 px-3.5 text-right text-rose-600 dark:text-rose-400">Total Keluar (OUT)</th>
+                <th class="py-2.5 px-3.5 text-right font-bold text-zinc-900 dark:text-white">Total Masuk (IN)</th>
+                <th class="py-2.5 px-3.5 text-right font-bold text-rose-600 dark:text-rose-400">Total Keluar (OUT)</th>
                 <th class="py-2.5 px-3.5 text-right font-black">Stok Akhir</th>
                 <th class="py-2.5 px-3.5 text-center">Status</th>
                 <th class="py-2.5 px-3.5 text-center">Aksi</th>

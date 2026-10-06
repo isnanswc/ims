@@ -5,17 +5,17 @@
       <div>
         <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <span>Master Data Barang</span>
-          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700">
             {{ itemsWithStock.length }} SKU Terdaftar
           </span>
         </h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
           Kelola SKU unik, deskripsi barang, satuan, batas Min-Max PPIC, Lead Time supplier, dan pantau level persediaan secara akurat.
         </p>
       </div>
       <button 
         @click="openModal()" 
-        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-600/25 transition-all self-start sm:self-auto"
+        class="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs sm:text-sm shadow-sm border border-zinc-950 dark:border-white transition-all self-start sm:self-auto"
       >
         <Plus class="w-4 h-4" />
         <span>Tambah Master Item</span>
@@ -503,6 +503,18 @@
             ></textarea>
           </div>
 
+          <!-- Opsi Stok Kosong Disengaja (Non-aktifkan Peringatan) -->
+          <div class="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700 flex items-center justify-between gap-3">
+            <div>
+              <span class="block text-xs font-bold text-zinc-900 dark:text-white">Stok Kosong Disengaja</span>
+              <span class="block text-[11px] text-zinc-500 dark:text-zinc-400">Non-aktifkan peringatan stok menipis jika item ini sengaja dibiarkan kosong atau discontinue.</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+              <input type="checkbox" v-model="formData.allowZeroStock" class="sr-only peer" />
+              <div class="w-9 h-5 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-950 dark:peer-checked:bg-white"></div>
+            </label>
+          </div>
+
           <div v-if="errorMessage" class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-medium">
             {{ errorMessage }}
           </div>
@@ -750,6 +762,7 @@ const formData = ref({
   minStock: 5,
   maxStock: 25,
   leadTime: 7,
+  allowZeroStock: false,
   keterangan: ''
 });
 
@@ -842,6 +855,7 @@ function openModal(item = null) {
       minStock: item.minStock || 5,
       maxStock: item.maxStock || 25,
       leadTime: item.leadTime || 7,
+      allowZeroStock: Boolean(item.allowZeroStock),
       keterangan: item.keterangan || ''
     };
   } else {
@@ -854,6 +868,7 @@ function openModal(item = null) {
       minStock: 5,
       maxStock: 25,
       leadTime: 7,
+      allowZeroStock: false,
       keterangan: ''
     };
   }
@@ -944,6 +959,7 @@ async function saveItem() {
         minStock: Number(formData.value.minStock) || 0,
         maxStock: Number(formData.value.maxStock) || 0,
         leadTime: Number(formData.value.leadTime) || 7,
+        allowZeroStock: Boolean(formData.value.allowZeroStock),
         keterangan: formData.value.keterangan.trim(),
         createdAt: new Date().toISOString()
       });
@@ -954,6 +970,7 @@ async function saveItem() {
         minStock: Number(formData.value.minStock) || 0,
         maxStock: Number(formData.value.maxStock) || 0,
         leadTime: Number(formData.value.leadTime) || 7,
+        allowZeroStock: Boolean(formData.value.allowZeroStock),
         keterangan: formData.value.keterangan.trim(),
         updatedAt: new Date().toISOString()
       });

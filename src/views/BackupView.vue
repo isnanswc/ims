@@ -108,7 +108,7 @@
 </template>
 
 <script setup>
-import { db, seedDemoDataIfEmpty } from '../database/db';
+import { db, seedDemoDataIfEmpty, seedLocationDataIfEmpty } from '../database/db';
 import { Download, Upload, FileSpreadsheet, RefreshCw } from 'lucide-vue-next';
 import * as XLSX from 'xlsx';
 
@@ -128,14 +128,20 @@ const emit = defineEmits(['refresh-data']);
 async function downloadBackupJson() {
   const items = await db.items.toArray();
   const txs = await db.transactions.toArray();
+  const locs = await db.locations.toArray();
+  const itemLocs = await db.item_locations.toArray();
+  const movs = await db.movements.toArray();
 
   const backupObject = {
     appName: 'IMS Client-Side Pro',
-    version: '2.0',
+    version: '3.0',
     exportDate: new Date().toISOString(),
     data: {
       items,
-      transactions: txs
+      transactions: txs,
+      locations: locs,
+      item_locations: itemLocs,
+      movements: movs
     }
   };
 
@@ -163,11 +169,25 @@ async function handleRestoreFile(e) {
       }
 
       if (confirm(`Pulihkan ${parsed.data.items.length} master item dan ${parsed.data.transactions.length} dokumen transaksi? Seluruh data saat ini akan ditimpa.`)) {
-        await db.transaction('rw', db.items, db.transactions, async () => {
+        await db.transaction('rw', db.items, db.transactions, db.locations, db.item_locations, db.movements, async () => {
           await db.items.clear();
           await db.transactions.clear();
+          await db.locations.clear();
+          await db.item_locations.clear();
+          await db.movements.clear();
+
           await db.items.bulkAdd(parsed.data.items);
           await db.transactions.bulkAdd(parsed.data.transactions);
+
+          if (Array.isArray(parsed.data.locations)) {
+            await db.locations.bulkAdd(parsed.data.locations);
+          }
+          if (Array.isArray(parsed.data.item_locations)) {
+            await db.item_locations.bulkAdd(parsed.data.item_locations);
+          }
+          if (Array.isArray(parsed.data.movements)) {
+            await db.movements.bulkAdd(parsed.data.movements);
+          }
         });
 
         alert('Data berhasil dipulihkan!');
@@ -237,7 +257,11 @@ async function resetToDemo() {
   if (confirm('Apakah Anda yakin ingin mengatur ulang data ke data demo bawaan? Data input Anda akan dihapus.')) {
     await db.items.clear();
     await db.transactions.clear();
-    await seedDemoDataIfEmpty();
+    await db.locations.clear();
+    await db.item_locations.clear();
+    await db.movements.clear();
+    await seedDemoDataIfEmpty(true);
+    await seedLocationDataIfEmpty(true);
     emit('refresh-data');
     alert('Data berhasil diatur ulang ke sampel demo!');
   }

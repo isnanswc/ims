@@ -4,17 +4,17 @@
     <div class="glass-card p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+          <div class="w-8 h-8 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center shadow-xs border border-zinc-950 dark:border-white">
             <Calculator class="w-4 h-4" />
           </div>
-          <h1 class="text-base sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 class="text-base sm:text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <span>Perencanaan Stok & Pengadaan (PPIC)</span>
-            <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700">
               Supply Intelligence
             </span>
           </h1>
         </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
           Analisis otomatis kebutuhan pengadaan berbasis konsumsi riwayat mutasi, estimasi hari persediaan habis (Days of Supply), serta eksekusi pesanan reorder langsung dalam 1-klik.
         </p>
       </div>
@@ -23,16 +23,16 @@
       <div class="flex flex-wrap items-center gap-2">
         <button 
           @click="exportPPICToExcel"
-          class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-colors shadow-sm"
+          class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-sm"
         >
-          <FileSpreadsheet class="w-4 h-4 text-emerald-600" />
+          <FileSpreadsheet class="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
           <span>Ekspor Rencana (.xlsx)</span>
         </button>
 
         <button 
           v-if="reorderItems.length > 0"
           @click="orderAllReorderItems"
-          class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-600/25 transition-all"
+          class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all"
           :title="`Buat Transfer Order Masuk untuk ${reorderItems.length} item yang butuh dipesan`"
         >
           <ShoppingCart class="w-4 h-4" />

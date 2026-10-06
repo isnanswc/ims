@@ -2,10 +2,18 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('InventoryManagementSystemDB');
 
-// Skema IndexedDB (Header-Detail Transaction Architecture)
+// Skema IndexedDB (Header-Detail Transaction & Location Movement Architecture)
 db.version(2).stores({
   items: '++id, &uniqCode, deskripsi, satuan, minStock, createdAt',
   transactions: '++id, &trxCode, type, tanggal, noDocument, createdAt'
+});
+
+db.version(3).stores({
+  items: '++id, &uniqCode, deskripsi, satuan, minStock, createdAt',
+  transactions: '++id, &trxCode, type, tanggal, noDocument, createdAt',
+  locations: '++id, &code, name, type, maxCapacity, createdAt',
+  item_locations: '++id, itemCode, locationCode, qty',
+  movements: '++id, &docNo, tanggal, status, totalItems, totalQty, createdAt'
 });
 
 // Helper: Generate Kode Unik Transaksi Otomatis
@@ -155,26 +163,33 @@ export async function seedDemoDataIfEmpty(force = false) {
   }
 }
 
-// Helper: Menghitung total akumulasi stok per barang
-export async function calculateStockMap(excludeDocId = null) {
-  const transactions = await db.transactions.toArray();
+// Helper: Menghitung total akumulasi stok per barang (dengan dukungan memoized preloaded transactions)
+export async function calculateStockMap(excludeDocId = null, preloadedTransactions = null) {
+  const transactions = preloadedTransactions || await db.transactions.toArray();
   const stockMap = {};
 
-  for (const doc of transactions) {
+  for (let d = 0; d < transactions.length; d++) {
+    const doc = transactions[d];
     if (excludeDocId && doc.id === excludeDocId) continue;
     if (!doc.items || !Array.isArray(doc.items)) continue;
 
-    for (const line of doc.items) {
-      if (!stockMap[line.uniqCode]) {
-        stockMap[line.uniqCode] = { inQty: 0, outQty: 0, balance: 0 };
+    const isDocIn = doc.type === 'IN';
+    const isDocOut = doc.type === 'OUT';
+    const lines = doc.items;
+
+    for (let l = 0; l < lines.length; l++) {
+      const line = lines[l];
+      const code = line.uniqCode;
+      if (!stockMap[code]) {
+        stockMap[code] = { inQty: 0, outQty: 0, balance: 0 };
       }
       const qty = Number(line.qty) || 0;
-      if (doc.type === 'IN') {
-        stockMap[line.uniqCode].inQty += qty;
-        stockMap[line.uniqCode].balance += qty;
-      } else if (doc.type === 'OUT') {
-        stockMap[line.uniqCode].outQty += qty;
-        stockMap[line.uniqCode].balance -= qty;
+      if (isDocIn) {
+        stockMap[code].inQty += qty;
+        stockMap[code].balance += qty;
+      } else if (isDocOut) {
+        stockMap[code].outQty += qty;
+        stockMap[code].balance -= qty;
       }
     }
   }
@@ -182,10 +197,12 @@ export async function calculateStockMap(excludeDocId = null) {
   return stockMap;
 }
 
-// Helper: Mengambil master item lengkap beserta stok saat ini dan status PPIC
-export async function getItemsWithCurrentStock(excludeDocId = null) {
-  const items = await db.items.toArray();
-  const stockMap = await calculateStockMap(excludeDocId);
+// Helper: Mengambil master item lengkap beserta stok saat ini dan status PPIC (Optimized parallel & memoized)
+export async function getItemsWithCurrentStock(excludeDocId = null, preloadedTransactions = null) {
+  const [items, stockMap] = await Promise.all([
+    db.items.toArray(),
+    calculateStockMap(excludeDocId, preloadedTransactions)
+  ]);
 
   return items.map(item => {
     const stockInfo = stockMap[item.uniqCode] || { inQty: 0, outQty: 0, balance: 0 };
@@ -222,6 +239,8 @@ export async function getItemsWithCurrentStock(excludeDocId = null) {
     }
 
     const stockPercent = max > 0 ? Math.min(100, Math.round((stock / max) * 100)) : 0;
+    const isAllowZero = Boolean(item.allowZeroStock || item.ignoreLowStockAlert || item.status === 'DISCONTINUED' || item.status === 'NON-AKTIF');
+    const isLowStock = !isAllowZero && (min > 0 ? stock <= min : false);
 
     return {
       ...item,
@@ -231,13 +250,26 @@ export async function getItemsWithCurrentStock(excludeDocId = null) {
       inQty: stockInfo.inQty,
       outQty: stockInfo.outQty,
       currentStock: stock,
-      isLowStock: stock <= min,
+      allowZeroStock: isAllowZero,
+      isLowStock,
       stockLevel,
       stockLevelLabel,
       stockLevelColor,
       stockPercent
     };
   });
+}
+
+// Helper: Toggle Abaikan Peringatan Stok Kosong / Disengaja Kosong
+export async function toggleItemAllowZeroStock(uniqCode, allowZero = true) {
+  const item = await db.items.where('uniqCode').equals(uniqCode).first();
+  if (item) {
+    await db.items.update(item.id, {
+      allowZeroStock: allowZero,
+      ignoreLowStockAlert: allowZero,
+      updatedAt: new Date().toISOString()
+    });
+  }
 }
 
 // Helper: Kalkulator PPIC Cerdas Berbasis Data Riwayat Outbound
@@ -393,3 +425,456 @@ export async function getItemLedgerHistory(uniqCode, startDate = null, endDate =
     return true;
   });
 }
+
+// =========================================================================
+// FITUR MODUL LOKASI & MUTASI INTERNAL (INTERNAL MOVEMENT)
+// =========================================================================
+
+export const DEFAULT_LOCATIONS = [
+  { code: 'RAK-A1', name: 'Rak Fast Picking A1', type: 'Fast Picking', maxCapacity: 200, keterangan: 'Dekat pintu keluar distribusi' },
+  { code: 'RAK-A2', name: 'Rak Fast Picking A2', type: 'Fast Picking', maxCapacity: 250, keterangan: 'Rak lorong utama sisi timur' },
+  { code: 'RAK-B1', name: 'Rak Logistik B1', type: 'Standard Storage', maxCapacity: 300, keterangan: 'Rak tingkat 1 & 2 tengah' },
+  { code: 'RAK-B2', name: 'Rak Logistik B2', type: 'Standard Storage', maxCapacity: 300, keterangan: 'Rak tingkat 3 & 4 tengah' },
+  { code: 'ZONE-C1', name: 'Pallet Bulk Storage C1', type: 'Bulk Pallet', maxCapacity: 500, keterangan: 'Area muatan karton besar' },
+  { code: 'ZONE-STAGING', name: 'Area Transit & Receiving', type: 'Transit / Staging', maxCapacity: 150, keterangan: 'Area penyangga barang masuk' }
+];
+
+let isLocationSeeded = false;
+
+export async function seedLocationDataIfEmpty(force = false) {
+  if (isLocationSeeded && !force) return;
+
+  const locCount = await db.locations.count();
+  if (locCount === 0 || force) {
+    if (force) {
+      await db.locations.clear();
+      await db.item_locations.clear();
+      await db.movements.clear();
+    }
+    const now = new Date().toISOString();
+    const locsToInsert = DEFAULT_LOCATIONS.map(l => ({ ...l, createdAt: now }));
+    await db.locations.bulkAdd(locsToInsert);
+  }
+
+  // Cek apakah item_locations masih kosong
+  const itemLocCount = await db.item_locations.count();
+  if (itemLocCount === 0 || force) {
+    const [items, stockMap] = await Promise.all([
+      db.items.toArray(),
+      calculateStockMap()
+    ]);
+    const allocations = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const stock = Math.max(0, (stockMap[it.uniqCode]?.balance) || 0);
+      if (stock === 0) continue;
+
+      if (stock <= 10) {
+        const loc = i % 2 === 0 ? 'RAK-A1' : 'RAK-A2';
+        allocations.push({ itemCode: it.uniqCode, locationCode: loc, qty: stock });
+      } else {
+        const loc1 = i % 2 === 0 ? 'RAK-A1' : 'RAK-B1';
+        const loc2 = i % 2 === 0 ? 'RAK-B2' : 'ZONE-C1';
+        const qty1 = Math.ceil(stock * 0.65);
+        const qty2 = stock - qty1;
+
+        allocations.push({ itemCode: it.uniqCode, locationCode: loc1, qty: qty1 });
+        if (qty2 > 0) {
+          allocations.push({ itemCode: it.uniqCode, locationCode: loc2, qty: qty2 });
+        }
+      }
+    }
+
+    if (allocations.length > 0) {
+      await db.item_locations.bulkAdd(allocations);
+    }
+
+    const movCount = await db.movements.count();
+    if (movCount === 0 || force) {
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      await db.movements.bulkAdd([
+        {
+          docNo: 'MOV-20261005-0001',
+          tanggal: yesterday,
+          operator: 'Budi Santoso (Admin Gudang)',
+          keterangan: 'Relokasi stok pengisian rak picking depan',
+          status: 'APPROVED',
+          isLocked: true,
+          totalItems: 2,
+          totalQty: 15,
+          createdAt: `${yesterday}T09:30:00.000Z`,
+          approvedAt: `${yesterday}T10:15:00.000Z`,
+          items: [
+            {
+              uniqCode: 'BRG-001',
+              deskripsi: 'Kertas HVS A4 80gr',
+              satuan: 'Rim',
+              fromLocation: 'ZONE-C1',
+              toLocation: 'RAK-A1',
+              qty: 10,
+              keterangan: 'Refill rak utama'
+            },
+            {
+              uniqCode: 'BRG-005',
+              deskripsi: 'Lakban Bening 2 Inch 100 Yard',
+              satuan: 'Roll',
+              fromLocation: 'RAK-B2',
+              toLocation: 'RAK-A2',
+              qty: 5,
+              keterangan: 'Kebutuhan packing'
+            }
+          ]
+        },
+        {
+          docNo: 'MOV-20261006-0001',
+          tanggal: today,
+          operator: 'Ahmad Fauzi (Operator)',
+          keterangan: 'Draft rencana penataan ulang kapasitas rak B',
+          status: 'DRAFT',
+          isLocked: false,
+          totalItems: 1,
+          totalQty: 4,
+          createdAt: `${today}T08:00:00.000Z`,
+          items: [
+            {
+              uniqCode: 'BRG-002',
+              deskripsi: 'Tinta Printer Epson Black 003',
+              satuan: 'Botol',
+              fromLocation: 'RAK-B1',
+              toLocation: 'RAK-A1',
+              qty: 4,
+              keterangan: 'Pindah ke picking area'
+            }
+          ]
+        }
+      ]);
+    }
+  }
+
+  isLocationSeeded = true;
+}
+
+export async function syncItemLocationsWithCurrentStock() {
+  await seedLocationDataIfEmpty();
+  const [items, allItemLocs] = await Promise.all([
+    getItemsWithCurrentStock(),
+    db.item_locations.toArray()
+  ]);
+
+  await db.transaction('rw', db.item_locations, async () => {
+    for (const item of items) {
+      const totalBalance = Math.max(0, Number(item.currentStock) || 0);
+      const itemRecords = allItemLocs.filter(il => il.itemCode === item.uniqCode);
+      const allocated = itemRecords.reduce((sum, curr) => sum + (Number(curr.qty) || 0), 0);
+
+      const diff = totalBalance - allocated;
+      if (diff > 0) {
+        const defaultTarget = 'ZONE-STAGING';
+        const existing = itemRecords.find(il => il.locationCode === defaultTarget);
+        if (existing) {
+          await db.item_locations.update(existing.id, { qty: existing.qty + diff });
+        } else {
+          await db.item_locations.add({
+            itemCode: item.uniqCode,
+            locationCode: defaultTarget,
+            qty: diff
+          });
+        }
+      } else if (diff < 0) {
+        let needToDeduct = Math.abs(diff);
+        for (const rec of itemRecords) {
+          if (needToDeduct <= 0) break;
+          if (rec.qty <= needToDeduct) {
+            needToDeduct -= rec.qty;
+            await db.item_locations.delete(rec.id);
+          } else {
+            await db.item_locations.update(rec.id, { qty: rec.qty - needToDeduct });
+            needToDeduct = 0;
+          }
+        }
+      }
+    }
+  });
+}
+
+export async function generateAutoMovementDocNo() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateCompact = `${year}${month}${day}`;
+
+  const countToday = await db.movements
+    .filter(m => m.tanggal === now.toISOString().split('T')[0])
+    .count();
+
+  const seq = String(countToday + 1).padStart(4, '0');
+  return `MOV-${dateCompact}-${seq}`;
+}
+
+export async function getLocationDetailsWithOccupancy() {
+  const [locations, itemLocs, items] = await Promise.all([
+    db.locations.toArray(),
+    db.item_locations.toArray(),
+    db.items.toArray()
+  ]);
+
+  const itemMap = {};
+  items.forEach(it => { itemMap[it.uniqCode] = it; });
+
+  return locations.map(loc => {
+    const locItems = itemLocs
+      .filter(il => il.locationCode === loc.code && il.qty > 0)
+      .map(il => {
+        const info = itemMap[il.itemCode] || {};
+        return {
+          id: il.id,
+          itemCode: il.itemCode,
+          deskripsi: info.deskripsi || il.itemCode,
+          satuan: info.satuan || 'Unit',
+          qty: Number(il.qty) || 0
+        };
+      });
+
+    const currentQty = locItems.reduce((sum, curr) => sum + curr.qty, 0);
+    const maxCapacity = Number(loc.maxCapacity) || 100;
+    const availableCapacity = Math.max(0, maxCapacity - currentQty);
+    const occupancyPercent = Math.min(100, Math.round((currentQty / maxCapacity) * 100));
+
+    let status = 'OPTIMAL';
+    let statusLabel = 'Optimal';
+    let statusColor = 'text-emerald-600 bg-emerald-50 border-emerald-200';
+
+    if (currentQty >= maxCapacity) {
+      status = 'FULL';
+      statusLabel = 'Penuh';
+      statusColor = 'text-rose-700 bg-rose-50 border-rose-200';
+    } else if (occupancyPercent >= 85) {
+      status = 'WARNING';
+      statusLabel = 'Hampir Penuh';
+      statusColor = 'text-amber-700 bg-amber-50 border-amber-200';
+    } else if (occupancyPercent <= 15) {
+      status = 'LOW';
+      statusLabel = 'Kapasitas Lega';
+      statusColor = 'text-blue-700 bg-blue-50 border-blue-200';
+    }
+
+    return {
+      ...loc,
+      currentQty,
+      availableCapacity,
+      occupancyPercent,
+      status,
+      statusLabel,
+      statusColor,
+      items: locItems
+    };
+  });
+}
+
+export async function getItemLocationsBreakdown(uniqCode) {
+  const [records, locations] = await Promise.all([
+    db.item_locations.filter(il => il.itemCode === uniqCode && il.qty > 0).toArray(),
+    db.locations.toArray()
+  ]);
+  const locMap = {};
+  locations.forEach(l => { locMap[l.code] = l; });
+
+  return records.map(r => {
+    const loc = locMap[r.locationCode] || {};
+    return {
+      id: r.id,
+      itemCode: r.itemCode,
+      locationCode: r.locationCode,
+      locationName: loc.name || r.locationCode,
+      locationType: loc.type || 'Standard',
+      qty: Number(r.qty) || 0,
+      maxCapacity: Number(loc.maxCapacity) || 100
+    };
+  });
+}
+
+export async function executeApproveMovement(movementId) {
+  const movement = await db.movements.get(movementId);
+  if (!movement) throw new Error('Dokumen movement tidak ditemukan');
+  if (movement.status === 'APPROVED') throw new Error('Dokumen sudah disetujui sebelumnya');
+
+  await db.transaction('rw', db.item_locations, db.movements, async () => {
+    for (const line of movement.items) {
+      const qtyToMove = Number(line.qty) || 0;
+      if (qtyToMove <= 0) continue;
+
+      // 1. Kurangi dari From Location
+      const fromRecord = await db.item_locations
+        .filter(il => il.itemCode === line.uniqCode && il.locationCode === line.fromLocation)
+        .first();
+
+      if (!fromRecord || fromRecord.qty < qtyToMove) {
+        throw new Error(`Stok item ${line.uniqCode} di lokasi ${line.fromLocation} tidak mencukupi (Tersedia: ${fromRecord ? fromRecord.qty : 0})`);
+      }
+
+      if (fromRecord.qty === qtyToMove) {
+        await db.item_locations.delete(fromRecord.id);
+      } else {
+        await db.item_locations.update(fromRecord.id, {
+          qty: fromRecord.qty - qtyToMove
+        });
+      }
+
+      // 2. Tambah ke To Location
+      const toRecord = await db.item_locations
+        .filter(il => il.itemCode === line.uniqCode && il.locationCode === line.toLocation)
+        .first();
+
+      if (toRecord) {
+        await db.item_locations.update(toRecord.id, {
+          qty: toRecord.qty + qtyToMove
+        });
+      } else {
+        await db.item_locations.add({
+          itemCode: line.uniqCode,
+          locationCode: line.toLocation,
+          qty: qtyToMove
+        });
+      }
+    }
+
+    // 3. Kunci dan perbarui status dokumen movement
+    await db.movements.update(movementId, {
+      status: 'APPROVED',
+      isLocked: true,
+      approvedAt: new Date().toISOString()
+    });
+  });
+
+  return true;
+}
+
+// Alokasi otomatis stok dokumen Transfer Order ke lokasi rak (Default: ZONE-STAGING)
+export async function applyTransactionStockToLocations(txDoc, isRevert = false) {
+  if (!txDoc || !Array.isArray(txDoc.items)) return;
+  await seedLocationDataIfEmpty();
+
+  await db.transaction('rw', db.item_locations, async () => {
+    for (const item of txDoc.items) {
+      const qty = Number(item.qty) || 0;
+      if (qty <= 0) continue;
+
+      if (txDoc.type === 'IN') {
+        // Lokasi masuk: gunakan yang dipilih di dokumen atau fallback ke default ZONE-STAGING
+        const targetLoc = item.locationCode || txDoc.defaultLocation || 'ZONE-STAGING';
+        const existing = await db.item_locations
+          .filter(il => il.itemCode === item.uniqCode && il.locationCode === targetLoc)
+          .first();
+
+        if (isRevert) {
+          if (existing) {
+            if (existing.qty <= qty) {
+              await db.item_locations.delete(existing.id);
+            } else {
+              await db.item_locations.update(existing.id, { qty: existing.qty - qty });
+            }
+          }
+        } else {
+          if (existing) {
+            await db.item_locations.update(existing.id, { qty: existing.qty + qty });
+          } else {
+            await db.item_locations.add({
+              itemCode: item.uniqCode,
+              locationCode: targetLoc,
+              qty: qty
+            });
+          }
+        }
+      } else if (txDoc.type === 'OUT') {
+        if (isRevert) {
+          const fallbackLoc = item.locationCode || 'ZONE-STAGING';
+          const existing = await db.item_locations
+            .filter(il => il.itemCode === item.uniqCode && il.locationCode === fallbackLoc)
+            .first();
+          if (existing) {
+            await db.item_locations.update(existing.id, { qty: existing.qty + qty });
+          } else {
+            await db.item_locations.add({ itemCode: item.uniqCode, locationCode: fallbackLoc, qty });
+          }
+        } else {
+          let needToDeduct = qty;
+          let locRecords = await db.item_locations
+            .filter(il => il.itemCode === item.uniqCode && il.qty > 0)
+            .toArray();
+
+          // Prioritaskan lokasi yang dipilih user jika ada
+          if (item.locationCode) {
+            locRecords.sort((a, b) => (a.locationCode === item.locationCode ? -1 : b.locationCode === item.locationCode ? 1 : 0));
+          }
+
+          for (const rec of locRecords) {
+            if (needToDeduct <= 0) break;
+            if (rec.qty <= needToDeduct) {
+              needToDeduct -= rec.qty;
+              await db.item_locations.delete(rec.id);
+            } else {
+              await db.item_locations.update(rec.id, { qty: rec.qty - needToDeduct });
+              needToDeduct = 0;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// ==============================================================
+// SISTEM DETEKSI DINI & PERINGATAN OTOMATIS GUDANG (SMART ALERTS)
+// ==============================================================
+export async function getWarehouseEarlyWarnings(preloadedLocations = null) {
+  const [locations, itemLocs, items] = await Promise.all([
+    preloadedLocations || getLocationDetailsWithOccupancy(),
+    db.item_locations.toArray(),
+    db.items.toArray()
+  ]);
+
+  const itemMap = {};
+  items.forEach(it => { itemMap[it.uniqCode] = it; });
+
+  // 1. Deteksi Overcapacity (Kapasitas Melampaui Batas)
+  const overcapacityLocations = locations.filter(l => l.currentQty > l.maxCapacity);
+
+  // 2. Deteksi Hampir Penuh (Occupancy >= 85% dan <= 100%)
+  const nearCapacityLocations = locations.filter(l => l.occupancyPercent >= 85 && l.currentQty <= l.maxCapacity);
+
+  // 3. Deteksi Staging Backlog (Barang menumpuk di ZONE-STAGING menunggu Putaway)
+  const stagingItems = itemLocs
+    .filter(il => il.locationCode === 'ZONE-STAGING' && il.qty > 0)
+    .map(il => {
+      const info = itemMap[il.itemCode] || {};
+      return {
+        itemCode: il.itemCode,
+        deskripsi: info.deskripsi || il.itemCode,
+        satuan: info.satuan || 'Unit',
+        qty: il.qty
+      };
+    });
+
+  // 4. Deteksi Dead Stock / Anomali Alokasi Lokasi
+  const unallocatedItems = items.filter(it => {
+    const allocated = itemLocs
+      .filter(il => il.itemCode === it.uniqCode)
+      .reduce((sum, curr) => sum + (Number(curr.qty) || 0), 0);
+    return it.stok > 0 && allocated === 0;
+  });
+
+  const totalWarnings = overcapacityLocations.length + nearCapacityLocations.length + (stagingItems.length > 0 ? 1 : 0);
+
+  return {
+    overcapacityLocations,
+    nearCapacityLocations,
+    stagingItems,
+    unallocatedItems,
+    totalWarnings
+  };
+}
+

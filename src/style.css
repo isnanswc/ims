@@ -3,45 +3,217 @@
 @tailwind utilities;
 
 @layer components {
-  /* Estetik Glass Matte Styling untuk Light Mode & Dark Mode */
+  /* High-Performance Monochrome Clean Styling (Zero GPU Lag) */
   .glass-card {
-    @apply bg-white/70 dark:bg-slate-900/75 backdrop-blur-xl border border-white/60 dark:border-slate-800/80 shadow-glass rounded-2xl transition-all duration-200;
+    @apply bg-white dark:bg-zinc-950 border border-zinc-200/90 dark:border-zinc-800 shadow-sm rounded-2xl transition-colors duration-150;
   }
   .glass-card-hover {
-    @apply hover:bg-white/85 dark:hover:bg-slate-900/90 hover:shadow-glass-hover hover:border-emerald-500/30;
+    @apply hover:border-zinc-400 dark:hover:border-zinc-700 hover:shadow-md transition-all duration-150;
   }
   .glass-panel {
-    @apply bg-white/80 dark:bg-slate-900/85 backdrop-blur-2xl border border-white/70 dark:border-slate-800/90 shadow-glass;
+    @apply bg-white/95 dark:bg-zinc-950/95 backdrop-blur-sm border border-zinc-200/90 dark:border-zinc-800 shadow-sm;
   }
   .glass-input {
-    @apply bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all;
+    @apply bg-white dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-white focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 transition-colors;
   }
   .glass-dropdown {
-    @apply bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl;
+    @apply bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-xl;
   }
-  /* Modal dengan Aksen Light Bersih & Mewah */
+  /* Modal dengan Aksen Monokrom Bersih & Ringan */
   .modal-backdrop-light {
-    @apply fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 dark:bg-black/75 backdrop-blur-md p-3 sm:p-4 transition-all;
+    @apply fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 dark:bg-black/80 backdrop-blur-sm p-3 sm:p-4 transition-all;
   }
   .modal-box-light {
-    @apply bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl shadow-emerald-500/10 dark:shadow-black/70 border border-slate-200/90 dark:border-slate-800 overflow-hidden ring-1 ring-black/5 dark:ring-white/10;
+    @apply bg-white dark:bg-zinc-950 rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden;
   }
+}
+
+/* ========================================================== */
+/* CIRCUIT ELECTRICAL CONDUCTION & LIGHTNING SPARK ANIMATIONS  */
+/* ========================================================== */
+@keyframes electric-trace-1 {
+  0% {
+    stroke-dashoffset: 120;
+    opacity: 0.15;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.15;
+  }
+}
+
+@keyframes electric-trace-2 {
+  0% {
+    stroke-dashoffset: 150;
+    opacity: 0.1;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.1;
+  }
+}
+
+@keyframes electric-spark-pulse {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.35;
+    filter: drop-shadow(0 0 1px #fff);
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+    filter: drop-shadow(0 0 4px #ffffff) drop-shadow(0 0 8px #ffffff);
+  }
+}
+
+.animate-electric-1 {
+  stroke-dasharray: 25 55;
+  animation: electric-trace-1 2.2s linear infinite;
+  will-change: stroke-dashoffset;
+  filter: drop-shadow(0 0 1.5px #ffffff);
+}
+
+.animate-electric-2 {
+  stroke-dasharray: 20 50;
+  animation: electric-trace-2 2.8s linear infinite;
+  animation-delay: 0.5s;
+  will-change: stroke-dashoffset;
+  filter: drop-shadow(0 0 1.5px #ffffff);
+}
+
+.animate-electric-3 {
+  stroke-dasharray: 18 45;
+  animation: electric-trace-1 2.5s linear infinite;
+  animation-delay: 1.1s;
+  will-change: stroke-dashoffset;
+  filter: drop-shadow(0 0 1.5px #ffffff);
+}
+
+.animate-spark {
+  animation: electric-spark-pulse 1.8s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.animate-spark-delayed {
+  animation: electric-spark-pulse 2.2s ease-in-out infinite;
+  animation-delay: 0.8s;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+/* =========================================================================
+   THE CYBER CUBE - ELECTRIC CIRCUIT ANIMATIONS (Hardware Accelerated)
+   ========================================================================= */
+@keyframes cyber-electric-loop {
+  0% {
+    stroke-dashoffset: 75;
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.25;
+  }
+}
+
+@keyframes cyber-node-pulse {
+  0%, 100% {
+    transform: scale(0.85);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+}
+
+.anim-cyber-flow-1 {
+  stroke-dasharray: 20 45;
+  animation: cyber-electric-loop 2s linear infinite;
+  will-change: stroke-dashoffset;
+}
+
+.anim-cyber-flow-2 {
+  stroke-dasharray: 16 38;
+  animation: cyber-electric-loop 2.6s linear infinite;
+  animation-delay: 0.6s;
+  will-change: stroke-dashoffset;
+}
+
+.anim-cyber-flow-3 {
+  stroke-dasharray: 14 32;
+  animation: cyber-electric-loop 2.2s linear infinite;
+  animation-delay: 1.1s;
+  will-change: stroke-dashoffset;
+}
+
+.anim-cyber-node {
+  animation: cyber-node-pulse 1.8s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.anim-cyber-node-delayed {
+  animation: cyber-node-pulse 2.2s ease-in-out infinite;
+  animation-delay: 0.9s;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+html.dark .anim-cyber-flow-1,
+html.dark .anim-cyber-flow-2,
+html.dark .anim-cyber-flow-3 {
+  filter: drop-shadow(0 0 1.5px #ffffff);
+}
+
+html:not(.dark) .anim-cyber-flow-1,
+html:not(.dark) .anim-cyber-flow-2,
+html:not(.dark) .anim-cyber-flow-3 {
+  filter: drop-shadow(0 0 1px rgba(9, 9, 11, 0.45));
+}
+
+html.dark .anim-cyber-node,
+html.dark .anim-cyber-node-delayed {
+  filter: drop-shadow(0 0 2px #ffffff);
+}
+
+html:not(.dark) .anim-cyber-node,
+html:not(.dark) .anim-cyber-node-delayed {
+  filter: drop-shadow(0 0 1.5px rgba(9, 9, 11, 0.35));
 }
 
 /* Custom smooth scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(161, 161, 170, 0.4);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: rgba(113, 113, 122, 0.6);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -53,6 +225,6 @@
 }
 
 button:active, a:active {
-  transform: scale(0.98);
+  transform: scale(0.985);
   transition: transform 0.05s ease-in-out;
 }
