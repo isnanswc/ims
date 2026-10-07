@@ -36,6 +36,7 @@
             v-if="activeTab === 'dashboard'" 
             :items-with-stock="itemsWithStock" 
             :transactions="transactions"
+            :is-loading="isLoading"
             @change-tab="handleTabChange"
             @quick-action="handleQuickAction"
             @refresh-data="loadAllData"
@@ -44,6 +45,7 @@
           <MasterItemView 
             v-else-if="activeTab === 'items'" 
             :items-with-stock="itemsWithStock"
+            :is-loading="isLoading"
             @refresh-data="loadAllData"
           />
 
@@ -52,6 +54,7 @@
             ref="transactionViewRef"
             :items-with-stock="itemsWithStock" 
             :transactions="transactions"
+            :is-loading="isLoading"
             @refresh-data="loadAllData"
             @subpage-change="handleSubpageChange"
           />
@@ -60,6 +63,7 @@
             v-else-if="activeTab === 'ledger'" 
             ref="ledgerViewRef"
             :items-with-stock="itemsWithStock" 
+            :is-loading="isLoading"
             @refresh-data="loadAllData"
             @subpage-change="handleSubpageChange"
           />
@@ -67,6 +71,7 @@
             v-else-if="activeTab === 'ppic'" 
             :items-with-stock="itemsWithStock" 
             :transactions="transactions" 
+            :is-loading="isLoading"
             @refresh-data="loadAllData" 
             @create-order="handleCreateOrderFromPPIC" 
           />
@@ -74,6 +79,7 @@
           <LocationView 
             v-else-if="activeTab === 'locations'" 
             :items-with-stock="itemsWithStock" 
+            :is-loading="isLoading"
             @refresh-data="loadAllData" 
           />
 
@@ -81,6 +87,7 @@
             v-else-if="activeTab === 'backup'" 
             :items-with-stock="itemsWithStock" 
             :transactions="transactions"
+            :is-loading="isLoading"
             @refresh-data="loadAllData"
           />
         </KeepAlive>
@@ -105,12 +112,14 @@ import LedgerView from './views/LedgerView.vue';
 import BackupView from './views/BackupView.vue';
 import PPICView from './views/PPICView.vue';
 import LocationView from './views/LocationView.vue';
+import SkeletonLoader from './components/SkeletonLoader.vue';
 import { db, getItemsWithCurrentStock, syncItemLocationsWithCurrentStock } from './database/db';
 
 const activeTab = ref('dashboard');
 const isDark = ref(false);
 const isSidebarCollapsed = ref(false);
 const subPageTitle = ref('');
+const isLoading = ref(true);
 
 const itemsWithStock = ref([]);
 const transactions = ref([]);
@@ -124,7 +133,7 @@ const pageMetaMap = {
   ledger: { title: 'Item Ledger (Kartu Stok)', subtitle: 'Riwayat Kronologis & Saldo Berjalan' },
   ppic: { title: 'Perencanaan PPIC', subtitle: 'Analisis Kebutuhan & Rekomendasi Pengadaan' },
   locations: { title: 'Manajemen Lokasi & Mutasi', subtitle: 'Tata Letak Gudang, Kapasitas & Movement' },
-  backup: { title: 'Cadangan & Pemulihan', subtitle: 'Export & Import Data Lokal' }
+  backup: { title: 'Pusat Data Excel & Integrasi', subtitle: 'Impor/Ekspor Cerdas, Template Standar & Cadangan' }
 };
 
 const currentPageInfo = computed(() => {
@@ -176,10 +185,19 @@ function toggleDarkMode() {
 }
 
 async function loadAllData() {
-  const txs = await db.transactions.toArray();
-  const items = await getItemsWithCurrentStock(null, txs);
-  itemsWithStock.value = items;
-  transactions.value = txs;
+  isLoading.value = true;
+  try {
+    const txs = await db.transactions.toArray();
+    const items = await getItemsWithCurrentStock(null, txs);
+    itemsWithStock.value = items || [];
+    transactions.value = txs || [];
+  } catch (err) {
+    console.error('Gagal memuat data dari IndexedDB:', err);
+  } finally {
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 180);
+  }
 }
 
 function handleSubpageChange(subTitle) {

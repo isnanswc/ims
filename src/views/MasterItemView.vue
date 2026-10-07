@@ -13,13 +13,23 @@
           Kelola SKU unik, deskripsi barang, satuan, batas Min-Max PPIC, Lead Time supplier, dan pantau level persediaan secara akurat.
         </p>
       </div>
-      <button 
-        @click="openModal()" 
-        class="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs sm:text-sm shadow-sm border border-zinc-950 dark:border-white transition-all self-start sm:self-auto"
-      >
-        <Plus class="w-4 h-4" />
-        <span>Tambah Master Item</span>
-      </button>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <button 
+          @click="isExportModalOpen = true" 
+          class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl font-bold text-xs sm:text-sm border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all cursor-pointer"
+          title="Ekspor katalog barang ke file Excel (.xlsx)"
+        >
+          <Download class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Ekspor Excel</span>
+        </button>
+        <button 
+          @click="openModal()" 
+          class="flex items-center justify-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs sm:text-sm shadow-sm border border-zinc-950 dark:border-white transition-all cursor-pointer"
+        >
+          <Plus class="w-4 h-4" />
+          <span>Tambah Master Item</span>
+        </button>
+      </div>
     </div>
 
     <!-- Toolbar: Search, Filters & Quick Stats -->
@@ -63,8 +73,18 @@
       </div>
     </div>
 
+    <!-- Skeleton Shimmer Loading State -->
+    <div v-if="isLoading" class="space-y-4">
+      <div class="md:hidden">
+        <SkeletonLoader type="card-list" :count="4" />
+      </div>
+      <div class="hidden md:block">
+        <SkeletonLoader type="table" :count="6" />
+      </div>
+    </div>
+
     <!-- Empty State -->
-    <div v-if="filteredItems.length === 0" class="glass-card p-12 text-center">
+    <div v-else-if="filteredItems.length === 0" class="glass-card p-12 text-center">
       <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
         <PackageX class="w-6 h-6" />
       </div>
@@ -72,24 +92,33 @@
       <p class="text-xs text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau reset filter status.</p>
     </div>
 
-    <!-- Mobile View: Modern Glass Cards -->
-    <div v-else class="grid grid-cols-1 gap-3 md:hidden">
+    <!-- Mobile View: Modern Dense & Compact Rows -->
+    <div v-else class="space-y-2 md:hidden">
       <div 
         v-for="item in paginatedItems" 
         :key="item.uniqCode"
-        class="glass-card p-4 space-y-3"
+        class="glass-card p-2.5 space-y-1.5 transition-all active:scale-[0.99] border-l-2"
+        :class="[
+          item.stockLevel === 'CRITICAL' ? 'border-l-rose-500' :
+          item.stockLevel === 'REORDER' ? 'border-l-amber-500' :
+          item.stockLevel === 'OVERSTOCK' ? 'border-l-purple-500' : 'border-l-emerald-500'
+        ]"
       >
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <span class="font-mono text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+        <!-- Baris 1: SKU & Deskripsi + Status Badge -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-mono text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
               {{ item.uniqCode }}
             </span>
-            <h3 class="font-bold text-slate-900 dark:text-white text-sm mt-1.5">{{ item.deskripsi }}</h3>
+            <h3 class="font-bold text-slate-900 dark:text-white text-xs truncate">
+              {{ item.deskripsi }}
+            </h3>
           </div>
-          <!-- Badge Level PPIC -->
+
+          <!-- Badge Level PPIC Minimalis -->
           <span 
             :class="[
-              'px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 border inline-flex items-center gap-1',
+              'px-2 py-0.5 rounded-full text-[9.5px] font-bold shrink-0 border inline-flex items-center gap-1',
               item.stockLevel === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800' :
               item.stockLevel === 'REORDER' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800' :
               item.stockLevel === 'OVERSTOCK' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border-purple-300 dark:border-purple-800' :
@@ -105,59 +134,58 @@
           </span>
         </div>
 
-        <!-- PPIC Gauge Progress Bar -->
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-[10px] text-slate-400">
-            <span>Stok Fisik: <strong class="text-slate-900 dark:text-white font-bold">{{ item.currentStock }} {{ item.satuan }}</strong></span>
-            <span>Rasio Max: {{ item.stockPercent }}%</span>
+        <!-- Baris 2: Strip Metrik Horizontal (Stok Fisik, Mini Gauge, Min/ROP, Max, Lead Time) -->
+        <div class="flex items-center justify-between text-[11px] bg-slate-50/70 dark:bg-slate-800/50 px-2 py-1 rounded-lg border border-slate-100 dark:border-slate-800 gap-2">
+          <!-- Stok & Mini Gauge -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-slate-400 text-[10px]">Stok:</span>
+            <strong class="text-slate-900 dark:text-white font-mono font-black">{{ item.currentStock }}</strong>
+            <span class="text-[10px] text-slate-500">{{ item.satuan }}</span>
+            <div class="w-10 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden shrink-0 ml-0.5">
+              <div 
+                class="h-full rounded-full"
+                :class="[
+                  item.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
+                  item.stockLevel === 'REORDER' ? 'bg-amber-500' :
+                  item.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
+                ]"
+                :style="{ width: `${item.stockPercent}%` }"
+              ></div>
+            </div>
           </div>
-          <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div 
-              class="h-full rounded-full transition-all duration-300"
-              :class="[
-                item.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
-                item.stockLevel === 'REORDER' ? 'bg-amber-500' :
-                item.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
-              ]"
-              :style="{ width: `${item.stockPercent}%` }"
-            ></div>
+
+          <!-- Parameter Inventori Kompak -->
+          <div class="flex items-center gap-2 text-[10.5px]">
+            <span class="text-slate-400">ROP: <strong class="text-slate-700 dark:text-slate-300">{{ item.minStock || 0 }}</strong></span>
+            <span class="text-slate-300 dark:text-slate-700">•</span>
+            <span class="text-slate-400">LT: <strong class="text-slate-700 dark:text-slate-300 font-mono">{{ item.leadTime || 7 }}h</strong></span>
+            <span class="text-slate-300 dark:text-slate-700 hidden xs:inline">•</span>
+            <span class="text-slate-400 hidden xs:inline">Max: <strong class="text-slate-700 dark:text-slate-300">{{ item.maxStock || '-' }}</strong></span>
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2 text-xs bg-slate-50/70 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-          <div>
-            <span class="text-slate-400 block text-[10px]">Min (ROP)</span>
-            <span class="font-bold text-slate-700 dark:text-slate-300">{{ item.minStock || 0 }}</span>
-          </div>
-          <div>
-            <span class="text-slate-400 block text-[10px]">Maks. Stok</span>
-            <span class="font-bold text-slate-700 dark:text-slate-300">{{ item.maxStock || '-' }}</span>
-          </div>
-          <div>
-            <span class="text-slate-400 block text-[10px]">Lead Time</span>
-            <span class="font-bold text-slate-700 dark:text-slate-300">{{ item.leadTime || 7 }}h</span>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+        <!-- Baris 3: Aksi Kompak Horizontal -->
+        <div class="flex items-center justify-between pt-0.5">
           <button 
             @click="openPPICModalForItem(item)"
-            class="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 rounded-lg transition-colors"
+            class="flex items-center gap-1 px-2 py-1 text-[10.5px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer"
           >
-            <Calculator class="w-3.5 h-3.5" />
+            <Calculator class="w-3 h-3" />
             <span>Kalkulator PPIC</span>
           </button>
-          <div class="flex items-center gap-1.5">
+
+          <div class="flex items-center gap-1">
             <button 
               @click="openModal(item)"
-              class="p-1.5 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+              class="px-2 py-1 text-[10.5px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               title="Edit Item"
             >
-              <Pencil class="w-3.5 h-3.5" />
+              <Pencil class="w-3 h-3 text-slate-500" />
+              <span>Edit</span>
             </button>
             <button 
               @click="confirmDelete(item)"
-              class="p-1.5 text-rose-600 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 rounded-lg transition-colors"
+              class="p-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
               title="Hapus Item"
             >
               <Trash2 class="w-3.5 h-3.5" />
@@ -177,7 +205,7 @@
     </div>
 
     <!-- Desktop View: Glass Table with PPIC Leveling & Column Sorting -->
-    <div v-if="filteredItems.length > 0" class="hidden md:block glass-card overflow-hidden">
+    <div v-if="!isLoading && filteredItems.length > 0" class="hidden md:block glass-card overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
@@ -387,14 +415,25 @@
         <form @submit.prevent="saveItem" class="bg-white dark:bg-slate-900 p-5 sm:p-6 space-y-4 overflow-y-auto">
           <!-- Uniq Code -->
           <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-1">
-              Uniq Code (SKU / Barcode) *
-            </label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                Uniq Code (SKU / Barcode) *
+              </label>
+              <button 
+                v-if="!isEditing"
+                type="button" 
+                @click="autoGenerateSkuForForm"
+                class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 flex items-center gap-1 cursor-pointer transition-colors"
+                title="Buat kode SKU unik otomatis berdasarkan nama barang"
+              >
+                <Zap class="w-3 h-3 text-purple-500" />
+                <span>Buat Otomatis (Auto-SKU)</span>
+              </button>
+            </div>
             <input 
               v-model="formData.uniqCode" 
               :disabled="isEditing"
-              required
-              placeholder="Contoh: BRG-001"
+              placeholder="Contoh: BRG-001 (Bisa kosong untuk auto-generate)"
               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm font-mono uppercase text-slate-900 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed transition-all"
             />
           </div>
@@ -410,6 +449,39 @@
               placeholder="Nama lengkap barang"
               class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white transition-all"
             />
+
+            <!-- Peringatan Cerdas: Kemiripan Deskripsi yang Pernah Dibuat -->
+            <div 
+              v-if="similarExistingItem && !isEditing" 
+              class="mt-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 text-xs space-y-2 shadow-xs transition-all"
+            >
+              <div class="flex items-start gap-2">
+                <AlertTriangle class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div class="leading-relaxed">
+                  <strong class="font-bold text-amber-900 dark:text-amber-200 block">
+                    {{ similarExistingItem.isExact ? 'Peringatan: Deskripsi Pernah Dibuat Sebelumnya!' : 'Perhatian: Ditemukan Item dengan Nama Mirip!' }}
+                  </strong>
+                  <span class="text-amber-800 dark:text-amber-300 text-[11px] block mt-0.5">
+                    Item serupa sudah terdaftar: 
+                    <strong>"{{ similarExistingItem.item.deskripsi }}"</strong> 
+                    (SKU: <code class="font-mono font-bold bg-amber-200/60 dark:bg-amber-900 px-1 py-0.2 rounded">{{ similarExistingItem.item.uniqCode }}</code>, Stok: {{ similarExistingItem.item.currentStock || 0 }} {{ similarExistingItem.item.satuan }}, Kemiripan: {{ similarExistingItem.percentage }}%)
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 pt-0.5 border-t border-amber-200 dark:border-amber-900/60 text-[11px]">
+                <button 
+                  type="button" 
+                  @click="useExistingItem(similarExistingItem.item)"
+                  class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold shadow-2xs transition-colors cursor-pointer"
+                >
+                  Edit / Gunakan Item Eksisting ({{ similarExistingItem.item.uniqCode }})
+                </button>
+                <span class="text-amber-700/80 dark:text-amber-400 text-[10px]">
+                  atau lanjutkan jika item ini memang varian berbeda.
+                </span>
+              </div>
+            </div>
           </div>
 
           <!-- Satuan & Lead Time Grid -->
@@ -701,6 +773,108 @@
         </div>
       </div>
     </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL EKSPOR EXCEL MASTER ITEM (MINIMALIS & ELEGAN)            -->
+    <!-- ============================================================== -->
+    <div 
+      v-if="isExportModalOpen" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4"
+    >
+      <div class="bg-white dark:bg-zinc-950 w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-bold">
+              <Download class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white">Ekspor Katalog Master Item (.xlsx)</h3>
+              <p class="text-[11px] text-zinc-400">Unduh data SKU, batas Min-Max PPIC, dan saldo persediaan saat ini.</p>
+            </div>
+          </div>
+          <button 
+            @click="isExportModalOpen = false" 
+            class="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 sm:p-6 space-y-4 text-xs">
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              Pilih Cakupan Data:
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button 
+                type="button"
+                @click="exportScope = 'ALL'"
+                :class="[
+                  'p-3 rounded-xl border text-left transition-all cursor-pointer',
+                  exportScope === 'ALL'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400'
+                ]"
+              >
+                <strong class="text-xs font-bold block">Seluruh Master Item</strong>
+                <span class="text-[10px] opacity-80 block mt-0.5">{{ itemsWithStock.length }} Total SKU Terdaftar</span>
+              </button>
+
+              <button 
+                type="button"
+                @click="exportScope = 'FILTERED'"
+                :class="[
+                  'p-3 rounded-xl border text-left transition-all cursor-pointer',
+                  exportScope === 'FILTERED'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400'
+                ]"
+              >
+                <strong class="text-xs font-bold block">Tampilan Filter Aktif</strong>
+                <span class="text-[10px] opacity-80 block mt-0.5">{{ filteredItems.length }} SKU Sesuai Filter/Cari</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Ringkasan -->
+          <div class="p-3.5 rounded-2xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] uppercase font-mono text-zinc-400 block">Pratinjau Hasil Ekspor</span>
+              <div class="text-xs font-bold text-zinc-900 dark:text-white mt-0.5">
+                <span>{{ exportItemsList.length }} SKU Barang</span>
+                <span class="text-zinc-400 font-normal mx-1.5">•</span>
+                <span>{{ exportItemsTotalStock }} Total Unit Fisik</span>
+              </div>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <FileSpreadsheet class="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-5 sm:px-6 py-3.5 bg-zinc-50 dark:bg-zinc-900/60 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end gap-2">
+          <button 
+            type="button"
+            @click="isExportModalOpen = false"
+            class="px-3.5 py-2 text-xs font-semibold bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer"
+          >
+            Batal
+          </button>
+          <button 
+            type="button"
+            @click="downloadItemsExcel"
+            :disabled="isExporting || exportItemsList.length === 0"
+            class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-xs border border-zinc-950 dark:border-white transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Download class="w-4 h-4" />
+            <span>{{ isExporting ? 'Membuat File...' : 'Unduh Excel (.xlsx)' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -708,26 +882,42 @@
 import { ref, computed, watch } from 'vue';
 import { db, calculateItemPPICMetrics } from '../database/db';
 import Pagination from '../components/Pagination.vue';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
+import * as XLSX from 'xlsx';
+import { 
+  createStyledSheet, 
+  findSimilarItemByDescription, 
+  generateAutoSkuCode 
+} from '../utils/excelFormatter';
 import { 
   Plus, 
   Search, 
   Pencil, 
   Trash2, 
   X, 
-  PackageX,
-  ArrowUp,
-  ArrowDown,
-  ChevronsUpDown,
-  Calculator,
-  ShieldCheck,
-  Sparkles,
-  CheckCircle2
+  PackageX, 
+  ArrowUp, 
+  ArrowDown, 
+  ChevronsUpDown, 
+  Calculator, 
+  ShieldCheck, 
+  Sparkles, 
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  AlertTriangle,
+  Zap,
+  RefreshCw
 } from 'lucide-vue-next';
 
 const props = defineProps({
   itemsWithStock: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -736,6 +926,68 @@ const emit = defineEmits(['refresh-data']);
 const searchQuery = ref('');
 const stockFilter = ref('ALL');
 const unitFilter = ref('ALL');
+
+// Contextual Export State
+const isExportModalOpen = ref(false);
+const exportScope = ref('ALL'); // 'ALL' | 'FILTERED'
+const isExporting = ref(false);
+
+const exportItemsList = computed(() => {
+  if (exportScope.value === 'FILTERED') {
+    return filteredItems.value;
+  }
+  return props.itemsWithStock;
+});
+
+const exportItemsTotalStock = computed(() => {
+  return exportItemsList.value.reduce((acc, curr) => acc + (Number(curr.currentStock) || 0), 0);
+});
+
+function downloadItemsExcel() {
+  if (exportItemsList.value.length === 0) {
+    alert('Tidak ada item yang dapat diekspor.');
+    return;
+  }
+  isExporting.value = true;
+  try {
+    const wb = XLSX.utils.book_new();
+    const rows = exportItemsList.value.map((item, idx) => {
+      let statusLabel = '🟢 Optimal (Aman)';
+      const stock = Number(item.currentStock) || 0;
+      const min = Number(item.minStock) || 0;
+      const max = Number(item.maxStock) || 0;
+      if (stock <= 0) statusLabel = '🔴 Kritis (Habis)';
+      else if (stock <= min) statusLabel = '🟡 Reorder Point';
+      else if (max > 0 && stock > max) statusLabel = '🟣 Overstock';
+
+      return {
+        'No': idx + 1,
+        'Kode Item (SKU)': item.uniqCode,
+        'Deskripsi Barang': item.deskripsi,
+        'Satuan': item.satuan,
+        'Stok Fisik Saat Ini': stock,
+        'Batas Min (ROP)': min,
+        'Batas Maks': max,
+        'Lead Time Supplier (Hari)': Number(item.leadTime) || 7,
+        'Status Level': statusLabel,
+        'Keterangan': item.keterangan || '-',
+        'Tanggal Registrasi': item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '-'
+      };
+    });
+
+    XLSX.utils.book_append_sheet(wb, createStyledSheet(rows), 'Master_Item_Barang');
+
+    const dateTag = new Date().toISOString().split('T')[0];
+    const scopeTag = exportScope.value.toLowerCase();
+    XLSX.writeFile(wb, `IMS_Master_Item_${scopeTag}_${dateTag}.xlsx`);
+    isExportModalOpen.value = false;
+  } catch (err) {
+    console.error('Gagal ekspor master item:', err);
+    alert('Gagal mengekspor data: ' + err.message);
+  } finally {
+    isExporting.value = false;
+  }
+}
 
 const sortKey = ref('uniqCode');
 const sortOrder = ref('asc'); // 'asc' | 'desc'
@@ -936,13 +1188,63 @@ async function applyPRICToForm() {
   isPPICModalOpen.value = false;
 }
 
+// Deteksi Item Serupa Secara Real-Time saat mengetik deskripsi
+const similarExistingItem = computed(() => {
+  const desc = formData.value.deskripsi?.trim();
+  if (!desc || desc.length < 3) return null;
+
+  // Jika sedang mode edit, jangan bandingkan dengan item dirinya sendiri
+  const pool = isEditing.value 
+    ? props.itemsWithStock.filter(i => i.id !== formData.value.id && i.uniqCode !== formData.value.uniqCode)
+    : props.itemsWithStock;
+
+  return findSimilarItemByDescription(desc, pool, 0.70);
+});
+
+// Auto-generate SKU unik untuk form
+function autoGenerateSkuForForm() {
+  const desc = formData.value.deskripsi?.trim();
+  if (!desc) {
+    alert('Ketik deskripsi atau nama barang terlebih dahulu untuk menghasilkan SKU otomatis.');
+    return;
+  }
+  const existingCodes = new Set(props.itemsWithStock.map(i => i.uniqCode));
+  formData.value.uniqCode = generateAutoSkuCode(desc, existingCodes, props.itemsWithStock.length + 1);
+}
+
+// Beralih untuk mengedit / memakai item eksisting yang mirip
+function useExistingItem(item) {
+  openModal(item);
+}
+
 async function saveItem() {
   errorMessage.value = '';
   try {
-    const code = formData.value.uniqCode.trim().toUpperCase();
-    if (!code) {
-      errorMessage.value = 'Uniq Code tidak boleh kosong!';
+    const desc = formData.value.deskripsi.trim();
+    if (!desc) {
+      errorMessage.value = 'Deskripsi barang tidak boleh kosong!';
       return;
+    }
+
+    let code = formData.value.uniqCode.trim().toUpperCase();
+    // Jika kode SKU kosong saat simpan, otomatis generate SKU unik!
+    if (!code) {
+      const existingCodes = new Set(props.itemsWithStock.map(i => i.uniqCode));
+      code = generateAutoSkuCode(desc, existingCodes, props.itemsWithStock.length + 1);
+      formData.value.uniqCode = code;
+    }
+
+    // Pengecekan apakah deskripsi pernah dibuat sebelumnya saat menambah item baru
+    if (!isEditing.value && similarExistingItem.value) {
+      const isExact = similarExistingItem.value.isExact;
+      const matched = similarExistingItem.value.item;
+      const confirmPrompt = isExact
+        ? `⚠️ Peringatan:\nDeskripsi "${matched.deskripsi}" persis sama dengan item yang sudah ada (SKU: ${matched.uniqCode}).\n\nApakah Anda yakin ingin tetap membuat item baru dengan SKU "${code}"?`
+        : `⚠️ Perhatian:\nDeskripsi "${desc}" mirip (${similarExistingItem.value.percentage}%) dengan item yang sudah ada:\n"${matched.deskripsi}" (SKU: ${matched.uniqCode}).\n\nApakah Anda yakin ingin tetap membuat item baru dengan SKU "${code}"?`;
+
+      if (!confirm(confirmPrompt)) {
+        return;
+      }
     }
 
     if (!isEditing.value) {
@@ -954,7 +1256,7 @@ async function saveItem() {
 
       await db.items.add({
         uniqCode: code,
-        deskripsi: formData.value.deskripsi.trim(),
+        deskripsi: desc,
         satuan: formData.value.satuan.trim(),
         minStock: Number(formData.value.minStock) || 0,
         maxStock: Number(formData.value.maxStock) || 0,
@@ -965,7 +1267,7 @@ async function saveItem() {
       });
     } else {
       await db.items.update(formData.value.id, {
-        deskripsi: formData.value.deskripsi.trim(),
+        deskripsi: desc,
         satuan: formData.value.satuan.trim(),
         minStock: Number(formData.value.minStock) || 0,
         maxStock: Number(formData.value.maxStock) || 0,

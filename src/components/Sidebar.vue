@@ -97,8 +97,8 @@
               : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
           ]"
         >
-          <Database class="w-4 h-4 shrink-0" />
-          <span>Cadangan & Restore</span>
+          <FileSpreadsheet class="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span>Pusat Data & Excel</span>
         </button>
 
         <div class="flex items-center justify-between px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-xs">
@@ -202,7 +202,7 @@
 
       <!-- Bottom Settings & Theme Toggle (Minimalis & Rapi) -->
       <div class="p-2.5 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-1">
-        <!-- Cadangan Data -->
+        <!-- Pusat Data Excel & Cadangan -->
         <button
           @click="$emit('change-tab', 'backup')"
           :class="[
@@ -212,15 +212,15 @@
               ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm' 
               : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white'
           ]"
-          :title="isCollapsed ? 'Cadangan & Restore' : ''"
+          :title="isCollapsed ? 'Pusat Data Excel & Cadangan' : ''"
         >
-          <Database class="w-4 h-4 shrink-0" />
-          <span v-if="!isCollapsed" class="truncate">Cadangan Data</span>
+          <FileSpreadsheet class="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span v-if="!isCollapsed" class="truncate font-semibold">Pusat Data & Excel</span>
           <div 
             v-if="isCollapsed" 
             class="absolute left-full ml-2.5 px-2 py-1 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-[11px] font-semibold rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-md z-50"
           >
-            Cadangan Data
+            Pusat Data & Excel
           </div>
         </button>
 
@@ -249,23 +249,27 @@
     </aside>
 
     <!-- Mobile Bottom Navigation (Thumb Friendly & Padat) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-zinc-200 dark:border-zinc-800 px-1.5 py-1 safe-area-pb">
-      <div class="grid grid-cols-6 gap-0.5">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-zinc-200 dark:border-zinc-800 px-1 py-1 safe-area-pb">
+      <div class="grid grid-cols-7 gap-0.5">
         <button
           v-for="item in mobileNavItems"
           :key="item.id"
           @click="selectTab(item.id)"
           :class="[
-            'flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl transition-all',
+            'flex flex-col items-center justify-center py-1 px-0.5 rounded-xl transition-all active:scale-90',
             activeTab === item.id 
               ? 'text-zinc-950 dark:text-white font-bold' 
-              : 'text-zinc-400 dark:text-zinc-500 font-normal'
+              : 'text-zinc-400 dark:text-zinc-500 font-normal hover:text-zinc-600'
           ]"
         >
-          <div :class="['p-1 rounded-lg', activeTab === item.id ? 'bg-zinc-200 dark:bg-zinc-800' : '']">
+          <div :class="[
+            'p-1 rounded-lg transition-colors flex items-center justify-center relative',
+            activeTab === item.id ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-950 dark:text-white' : ''
+          ]">
             <component :is="item.icon" class="w-4 h-4" />
+            <span v-if="activeTab === item.id" class="w-1 h-1 rounded-full bg-zinc-950 dark:bg-white absolute -bottom-0.5"></span>
           </div>
-          <span class="text-[9px] mt-0.5 tracking-tight truncate">{{ item.shortLabel }}</span>
+          <span class="text-[8.5px] mt-0.5 tracking-tight truncate">{{ item.shortLabel }}</span>
         </button>
       </div>
     </nav>
@@ -288,7 +292,8 @@ import {
   Sun, 
   Moon,
   Calculator,
-  MapPin 
+  MapPin,
+  FileSpreadsheet
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -317,6 +322,7 @@ const mobileNavItems = [
   { id: 'ppic', shortLabel: 'PPIC', icon: Calculator },
   { id: 'locations', shortLabel: 'Lokasi', icon: MapPin },
   { id: 'ledger', shortLabel: 'Ledger', icon: FileText },
+  { id: 'backup', shortLabel: 'Excel', icon: FileSpreadsheet },
 ];
 
 function selectTab(id) {

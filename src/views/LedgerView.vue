@@ -17,6 +17,15 @@
             Daftar seluruh item barang dan kondisi transaksi persediaan. Klik item untuk membuka halaman audit kartu stok & grafik mutasi.
           </p>
         </div>
+
+        <button 
+          @click="downloadLedgerSummaryExcel" 
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl font-bold text-xs border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all self-start sm:self-auto cursor-pointer"
+          title="Ekspor ringkasan buku besar seluruh item ke Excel (.xlsx)"
+        >
+          <Download class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Ekspor Buku Besar</span>
+        </button>
       </div>
 
       <!-- Toolbar: Search & Filter Status -->
@@ -44,8 +53,93 @@
         </div>
       </div>
 
-      <!-- Tabel Katalog Master Item -->
-      <div class="glass-card overflow-hidden">
+      <!-- Skeleton Shimmer Loading State -->
+      <div v-if="isLoading" class="space-y-4">
+        <div class="md:hidden">
+          <SkeletonLoader type="card-list" :count="4" />
+        </div>
+        <div class="hidden md:block">
+          <SkeletonLoader type="table" :count="6" />
+        </div>
+      </div>
+
+      <!-- Mobile Card View: Katalog Master Item (Khusus Smartphone / md:hidden) -->
+      <div v-else class="md:hidden space-y-3">
+        <div v-if="filteredCatalogItems.length === 0" class="glass-card p-6 text-center text-slate-400 text-xs">
+          Tidak ada barang yang cocok dengan pencarian atau filter.
+        </div>
+
+        <div 
+          v-for="item in paginatedCatalogItems" 
+          :key="item.uniqCode"
+          @click="openItemDetailPage(item.uniqCode)"
+          class="glass-card p-2.5 space-y-1.5 cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 transition-all active:scale-[0.99] border-l-2"
+          :class="[
+            item.stockLevel === 'CRITICAL' ? 'border-l-rose-500' :
+            item.stockLevel === 'REORDER' ? 'border-l-amber-500' :
+            item.stockLevel === 'OVERSTOCK' ? 'border-l-purple-500' : 'border-l-emerald-500'
+          ]"
+        >
+          <!-- Baris 1: SKU & Deskripsi + Status Badge -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="font-mono font-bold text-[11px] bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 shrink-0">
+                {{ item.uniqCode }}
+              </span>
+              <h3 class="text-xs font-bold text-zinc-900 dark:text-white truncate">
+                {{ item.deskripsi }}
+              </h3>
+            </div>
+
+            <!-- Status Level Badge Minimalis -->
+            <span 
+              :class="[
+                'px-2 py-0.5 rounded-full text-[9.5px] font-bold border inline-flex items-center gap-1 shrink-0',
+                item.stockLevel === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800' :
+                item.stockLevel === 'REORDER' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800' :
+                item.stockLevel === 'OVERSTOCK' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border-purple-300 dark:border-purple-800' :
+                'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
+              ]"
+            >
+              <span class="w-1.5 h-1.5 rounded-full" :class="[
+                item.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
+                item.stockLevel === 'REORDER' ? 'bg-amber-500' :
+                item.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
+              ]"></span>
+              <span>{{ item.stockLevelLabel || (item.isLowStock ? 'Kritis' : 'Optimal') }}</span>
+            </span>
+          </div>
+
+          <!-- Baris 2: Strip Metrik Horizontal (IN, OUT, Saldo) & Aksi Buka -->
+          <div class="flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-800">
+            <div class="flex items-center gap-2.5">
+              <div>
+                <span class="text-zinc-400 text-[10px]">IN: </span>
+                <strong class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">+{{ item.inQty || 0 }}</strong>
+              </div>
+              <div class="text-zinc-300 dark:text-zinc-700">•</div>
+              <div>
+                <span class="text-zinc-400 text-[10px]">OUT: </span>
+                <strong class="font-bold text-rose-600 dark:text-rose-400 font-mono">-{{ item.outQty || 0 }}</strong>
+              </div>
+              <div class="text-zinc-300 dark:text-zinc-700">•</div>
+              <div>
+                <span class="text-zinc-400 text-[10px]">Saldo: </span>
+                <strong class="font-black text-zinc-900 dark:text-white font-mono">{{ item.currentStock || 0 }}</strong>
+                <span class="text-[9.5px] text-zinc-500 ml-0.5">{{ item.satuan }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 text-[11px] font-bold text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 shrink-0">
+              <span class="text-[10px] hidden xs:inline">Buku Besar</span>
+              <ArrowRight class="w-3.5 h-3.5" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop View: Tabel Katalog Master Item (Khusus Layar Desktop / md:block) -->
+      <div v-if="!isLoading" class="hidden md:block glass-card overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -130,16 +224,17 @@
             </tbody>
           </table>
         </div>
+      </div>
 
-        <div class="p-2.5 border-t border-slate-200/60 dark:border-slate-800">
-          <Pagination 
-            :current-page="catalogCurrentPage"
-            :page-size="catalogPageSize"
-            :total-items="filteredCatalogItems.length"
-            @update:current-page="catalogCurrentPage = $event"
-            @update:page-size="catalogPageSize = $event"
-          />
-        </div>
+      <!-- Unified Pagination Katalog Master Item -->
+      <div v-if="!isLoading && filteredCatalogItems.length > 0" class="glass-card p-2.5">
+        <Pagination 
+          :current-page="catalogCurrentPage"
+          :page-size="catalogPageSize"
+          :total-items="filteredCatalogItems.length"
+          @update:current-page="catalogCurrentPage = $event"
+          @update:page-size="catalogPageSize = $event"
+        />
       </div>
     </div>
 
@@ -219,11 +314,21 @@
             <!-- Tombol Buka Kalkulator PPIC -->
             <button 
               @click="openPPICModal"
-              class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all ml-1"
+              class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all ml-1 cursor-pointer"
               title="Hitung Parameter Min-Max PPIC Berdasarkan Mutasi"
             >
               <Calculator class="w-3.5 h-3.5" />
               <span>⚡ Kalkulator PPIC</span>
+            </button>
+
+            <!-- Tombol Ekspor Kartu Stok -->
+            <button 
+              @click="downloadStockCardExcel"
+              class="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-bold border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all ml-1 cursor-pointer"
+              title="Ekspor Kartu Stok & Riwayat Mutasi ke Excel (.xlsx)"
+            >
+              <Download class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Ekspor Kartu Stok</span>
             </button>
           </div>
         </div>
@@ -471,7 +576,76 @@
           </span>
         </div>
 
-        <div class="border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-x-auto">
+        <!-- Mobile View: Riwayat Mutasi Kronologis Rows (md:hidden) -->
+        <div class="md:hidden space-y-1.5">
+          <div v-if="paginatedLedger.length === 0" class="p-6 text-center text-slate-400 text-xs">
+            Belum ada transaksi mutasi untuk barang ini pada rentang waktu terpilih.
+          </div>
+
+          <div 
+            v-for="(row, idx) in paginatedLedger" 
+            :key="idx"
+            :class="[
+              'p-2.5 rounded-lg border space-y-1 transition-all',
+              row.type === 'REG' 
+                ? 'bg-blue-50/40 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50' 
+                : 'bg-white dark:bg-zinc-900 border-zinc-200/80 dark:border-zinc-800'
+            ]"
+          >
+            <!-- Baris 1: Tanggal & No Dokumen + Badge Tipe -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 font-mono shrink-0">
+                  {{ row.tanggal }}
+                </span>
+                <span class="text-zinc-300 dark:text-zinc-700">•</span>
+                <span class="font-mono font-bold text-xs text-zinc-900 dark:text-white truncate">
+                  {{ row.noDocument || '-' }}
+                </span>
+              </div>
+
+              <span 
+                v-if="row.type === 'REG'"
+                class="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 shrink-0"
+              >
+                Registrasi
+              </span>
+              <span 
+                v-else
+                :class="[
+                  'px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase shrink-0',
+                  row.type === 'IN' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                ]"
+              >
+                {{ row.type === 'IN' ? 'Masuk' : 'Keluar' }}
+              </span>
+            </div>
+
+            <!-- Baris 2: Mutasi Qty & Saldo Berjalan (Horizontal Padat) -->
+            <div class="flex items-center justify-between text-[11px] pt-0.5">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-zinc-400 text-[10px]">Mutasi:</span>
+                <span v-if="row.type === 'REG'" class="text-xs text-slate-400 font-normal">0</span>
+                <span v-else-if="row.inQty > 0" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">+{{ row.inQty }} {{ currentItem.satuan }}</span>
+                <span v-else-if="row.outQty > 0" class="text-xs font-bold text-rose-600 dark:text-rose-400 font-mono">-{{ row.outQty }} {{ currentItem.satuan }}</span>
+                <span v-else class="text-xs text-zinc-400">-</span>
+                <span v-if="row.lineKeterangan || row.keterangan" class="text-[10px] text-zinc-400 truncate max-w-[120px] italic hidden xs:inline">
+                  ({{ row.lineKeterangan || row.keterangan }})
+                </span>
+              </div>
+
+              <div class="flex items-center gap-1 shrink-0">
+                <span class="text-[10px] text-zinc-400">Saldo:</span>
+                <span class="font-black text-xs text-zinc-950 dark:text-white font-mono">
+                  {{ row.balance }} <span class="text-[9.5px] font-normal text-zinc-400">{{ currentItem.satuan }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop View: Tabel Riwayat Mutasi (hidden md:block) -->
+        <div class="hidden md:block border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
@@ -716,6 +890,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { getItemLedgerHistory, calculateItemPPICMetrics, db } from '../database/db';
 import Pagination from '../components/Pagination.vue';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
 import { 
   FileSpreadsheet, 
   Search, 
@@ -729,14 +904,20 @@ import {
   Sparkles,
   ShieldCheck,
   CheckCircle2,
-  X
+  X,
+  Download
 } from 'lucide-vue-next';
 import * as XLSX from 'xlsx';
+import { createStyledSheet } from '../utils/excelFormatter';
 
 const props = defineProps({
   itemsWithStock: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -956,27 +1137,60 @@ onMounted(() => {
 });
 
 function exportLedgerToExcel() {
-  if (!currentItem.value || ledgerRows.value.length === 0) return;
+  if (!currentItem.value || ledgerRows.value.length === 0) {
+    alert('Tidak ada data mutasi kartu stok untuk diekspor.');
+    return;
+  }
 
   const exportData = ledgerRows.value.map(row => ({
-    'Tanggal': row.tanggal,
-    'No Dokumen': row.noDocument || '',
-    'Tipe': row.type === 'REG' ? 'Registrasi Awal' : (row.type === 'IN' ? 'TO Masuk' : 'TO Keluar'),
-    'Kode Item': row.uniqCode,
-    'Deskripsi': row.deskripsi,
-    'Masuk': row.inQty,
-    'Keluar': row.outQty,
-    'Saldo Berjalan': row.balance,
+    'Tanggal Mutasi': row.tanggal,
+    'No Dokumen Ref': row.noDocument || '-',
+    'Tipe Mutasi': row.type === 'REG' ? '✨ Registrasi Awal' : (row.type === 'IN' ? '📥 TO Masuk (IN)' : '📤 TO Keluar (OUT)'),
+    'Kode Item (SKU)': row.uniqCode,
+    'Deskripsi Barang': row.deskripsi,
+    'Masuk': row.inQty || 0,
+    'Keluar': row.outQty || 0,
+    'Saldo Akhir Berjalan': row.balance || 0,
     'Satuan': currentItem.value.satuan,
-    'Keterangan': row.lineKeterangan || row.keterangan || ''
+    'Keterangan': row.lineKeterangan || row.keterangan || '-'
   }));
 
-  const worksheet = XLSX.utils.json_to_sheet(exportData);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Kartu Stok Ledger');
+  XLSX.utils.book_append_sheet(workbook, createStyledSheet(exportData), 'Kartu_Stok_Mutasi');
 
-  const fileName = `Ledger_${currentItem.value.uniqCode}_${new Date().toISOString().split('T')[0]}.xlsx`;
+  const dateTag = new Date().toISOString().split('T')[0];
+  const rangeTag = activePreset.value ? `${activePreset.value}D` : (startDate.value && endDate.value ? `${startDate.value}_sd_${endDate.value}` : 'ALL');
+  const fileName = `IMS_Kartu_Stok_${currentItem.value.uniqCode}_${rangeTag}_${dateTag}.xlsx`;
   XLSX.writeFile(workbook, fileName);
+}
+
+const downloadStockCardExcel = exportLedgerToExcel;
+
+function downloadLedgerSummaryExcel() {
+  if (filteredCatalogItems.value.length === 0) {
+    alert('Tidak ada data buku besar untuk diekspor.');
+    return;
+  }
+
+  const exportRows = filteredCatalogItems.value.map((item, idx) => ({
+    'No': idx + 1,
+    'Kode Item (SKU)': item.uniqCode,
+    'Deskripsi Barang': item.deskripsi,
+    'Satuan': item.satuan,
+    'Tgl Registrasi': item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '-',
+    'Total Masuk (IN)': item.totalIn || 0,
+    'Total Keluar (OUT)': item.totalOut || 0,
+    'Stok Akhir': item.currentStock || 0,
+    'Status Persediaan': item.isLowStock ? '🔴 Kritis (Di Bawah Min)' : '🟢 Aman',
+    'Batas Min (ROP)': item.minStock || 0,
+    'Batas Maks': item.maxStock || 0
+  }));
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, createStyledSheet(exportRows), 'Ringkasan_Buku_Besar');
+
+  const dateTag = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(workbook, `IMS_Buku_Besar_Ledger_${dateTag}.xlsx`);
 }
 
 // Buka Kalkulator PPIC Cerdas dari Detail Item Ledger

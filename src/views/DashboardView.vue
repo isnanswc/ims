@@ -27,28 +27,37 @@
           </p>
         </div>
 
-        <!-- Quick Action Buttons -->
-        <div class="flex items-center gap-2.5 shrink-0">
+        <!-- Quick Action Buttons (Grid di Mobile, Flex di Desktop) -->
+        <div class="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <button 
+            @click="$emit('change-tab', 'ppic')"
+            class="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-2xl font-bold text-[11px] sm:text-sm shadow-sm border border-zinc-950 dark:border-white transition-all active:scale-95 cursor-pointer text-center"
+            title="Buka Halaman PPIC & Kalkulator Simulasi Stok"
+          >
+            <Calculator class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span class="truncate">PPIC</span>
+          </button>
           <button 
             @click="$emit('quick-action', 'inbound')"
-            class="flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-2xl font-bold text-xs sm:text-sm shadow-sm border border-zinc-950 dark:border-white transition-all active:scale-95"
+            class="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2.5 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-2xl font-bold text-[11px] sm:text-sm border border-zinc-300 dark:border-zinc-700 shadow-sm transition-all active:scale-95 cursor-pointer text-center"
           >
-            <ArrowDownLeft class="w-4 h-4" />
-            <span>+ TO Masuk</span>
+            <ArrowDownLeft class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
+            <span class="truncate">+ Masuk</span>
           </button>
           <button 
             @click="$emit('quick-action', 'outbound')"
-            class="flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-2xl font-bold text-xs sm:text-sm border border-zinc-300 dark:border-zinc-700 shadow-sm transition-all active:scale-95"
+            class="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2.5 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-2xl font-bold text-[11px] sm:text-sm border border-zinc-300 dark:border-zinc-700 shadow-sm transition-all active:scale-95 cursor-pointer text-center"
           >
-            <ArrowUpRight class="w-4 h-4 text-rose-500" />
-            <span>- TO Keluar</span>
+            <ArrowUpRight class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 shrink-0" />
+            <span class="truncate">- Keluar</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 2. ANIMATED ROLLING COUNTER KPI CARDS -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+    <!-- 2. ANIMATED ROLLING COUNTER KPI CARDS (DENGAN SKELETON SHIMMER) -->
+    <SkeletonLoader v-if="isLoading" type="kpi" :count="4" />
+    <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
       <!-- 1. Total SKU Aktif -->
       <div class="glass-card glass-card-hover p-4 sm:p-5 flex items-center gap-3.5 relative overflow-hidden group">
         <div class="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 text-zinc-800 dark:text-zinc-200 flex items-center justify-center shrink-0 border border-zinc-300 dark:border-zinc-700 group-hover:scale-105 transition-transform">
@@ -103,7 +112,8 @@
     </div>
 
     <!-- 3. DIAGRAM GARIS KONDISI STOK GLOBAL PER HARI (INTERAKTIF & RANGE SELECTOR) -->
-    <div class="glass-card p-4 sm:p-6 space-y-4">
+    <SkeletonLoader v-if="isLoading" type="chart" />
+    <div v-else class="glass-card p-4 sm:p-6 space-y-4">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3.5">
         <div>
           <div class="flex items-center gap-2">
@@ -118,13 +128,13 @@
         </div>
 
         <!-- Global Range Selector Filter (Mempengaruhi Semua Diagram) -->
-        <div class="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 self-start sm:self-auto">
+        <div class="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 self-start sm:self-auto overflow-x-auto max-w-full no-scrollbar">
           <button 
             v-for="r in rangeOptions" 
             :key="r.value"
             @click="selectedRange = r.value"
             :class="[
-              'px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
+              'px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap',
               selectedRange === r.value 
                 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm' 
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
@@ -722,6 +732,7 @@ import {
   Clock
 } from 'lucide-vue-next';
 import { toggleItemAllowZeroStock } from '../database/db';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
 
 const props = defineProps({
   itemsWithStock: {
@@ -731,6 +742,10 @@ const props = defineProps({
   transactions: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 

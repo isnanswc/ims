@@ -19,8 +19,17 @@
         </p>
       </div>
 
-      <!-- Action Buttons: Batch PO & Export Excel -->
+      <!-- Action Buttons: Kalkulator Simulasi PPIC, Batch PO & Export Excel -->
       <div class="flex flex-wrap items-center gap-2">
+        <button 
+          @click="openGeneralPPICCalculator"
+          class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all cursor-pointer"
+          title="Buka Kalkulator Simulasi PPIC Step-by-Step"
+        >
+          <Calculator class="w-4 h-4" />
+          <span>Kalkulator Simulasi PPIC</span>
+        </button>
+
         <button 
           @click="exportPPICToExcel"
           class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-sm"
@@ -32,7 +41,7 @@
         <button 
           v-if="reorderItems.length > 0"
           @click="orderAllReorderItems"
-          class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all"
+          class="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-xl text-xs font-bold shadow-sm border border-zinc-300 dark:border-zinc-700 transition-all"
           :title="`Buat Transfer Order Masuk untuk ${reorderItems.length} item yang butuh dipesan`"
         >
           <ShoppingCart class="w-4 h-4" />
@@ -41,8 +50,9 @@
       </div>
     </div>
 
-    <!-- Stat Metric Cards: PPIC 4 Leveling Overview -->
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+    <!-- Stat Metric Cards: PPIC 4 Leveling Overview (Dengan Skeleton Shimmer) -->
+    <SkeletonLoader v-if="isLoading" type="kpi" :count="5" :cols="3" />
+    <div v-else class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
       <!-- 1. Kritis -->
       <div 
         @click="activeStatusFilter = 'CRITICAL'"
@@ -170,8 +180,138 @@
       </div>
     </div>
 
-    <!-- Tabel Analisa Pengadaan PPIC -->
-    <div class="glass-card overflow-hidden">
+    <!-- Skeleton Shimmer Loading State -->
+    <div v-if="isLoading" class="space-y-4">
+      <div class="md:hidden">
+        <SkeletonLoader type="card-list" :count="4" />
+      </div>
+      <div class="hidden md:block">
+        <SkeletonLoader type="table" :count="6" />
+      </div>
+    </div>
+
+    <!-- Mobile Compact Row View (Khusus Layar Smartphone / md:hidden) -->
+    <div v-else class="md:hidden space-y-2">
+      <div v-if="filteredItems.length === 0" class="glass-card p-6 text-center text-slate-400 text-xs">
+        Tidak ada data barang yang sesuai dengan filter atau kata kunci pencarian.
+      </div>
+
+      <div 
+        v-for="item in paginatedItems" 
+        :key="item.uniqCode"
+        class="glass-card p-2.5 space-y-1.5 transition-all active:scale-[0.99] border-l-2"
+        :class="[
+          item.stockLevel === 'CRITICAL' ? 'border-l-rose-500' :
+          item.stockLevel === 'REORDER' ? 'border-l-amber-500' :
+          item.stockLevel === 'OVERSTOCK' ? 'border-l-purple-500' : 'border-l-emerald-500'
+        ]"
+      >
+        <!-- Baris 1: SKU & Deskripsi + Status Badge -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="font-mono font-bold text-[11px] bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 shrink-0">
+              {{ item.uniqCode }}
+            </span>
+            <h3 class="text-xs font-bold text-zinc-900 dark:text-white truncate">
+              {{ item.deskripsi }}
+            </h3>
+          </div>
+
+          <!-- Status Level Badge Minimalis -->
+          <span 
+            :class="[
+              'px-2 py-0.5 rounded-full text-[9.5px] font-bold border inline-flex items-center gap-1 shrink-0',
+              item.stockLevel === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800' :
+              item.stockLevel === 'REORDER' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800' :
+              item.stockLevel === 'OVERSTOCK' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border-purple-300 dark:border-purple-800' :
+              'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
+            ]"
+          >
+            <span class="w-1.5 h-1.5 rounded-full" :class="[
+              item.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
+              item.stockLevel === 'REORDER' ? 'bg-amber-500' :
+              item.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
+            ]"></span>
+            <span>{{ item.stockLevelLabel }}</span>
+          </span>
+        </div>
+
+        <!-- Baris 2: Metrik Strip Horizontal Padat (Stok, ROP, Sisa Hari, ADU) -->
+        <div class="flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-900/60 px-2 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-800 gap-2">
+          <!-- Stok Fisik & Mini Bar -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-zinc-400 text-[10px]">Stok:</span>
+            <span class="font-black text-zinc-900 dark:text-white font-mono">{{ item.currentStock }}</span>
+            <span class="text-[10px] text-zinc-500">{{ item.satuan }}</span>
+            <div class="w-10 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden shrink-0 ml-0.5">
+              <div 
+                class="h-full rounded-full"
+                :class="[
+                  item.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
+                  item.stockLevel === 'REORDER' ? 'bg-amber-500' :
+                  item.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
+                ]"
+                :style="{ width: `${item.stockPercent}%` }"
+              ></div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 text-[10.5px]">
+            <span class="text-zinc-400 hidden xs:inline">ROP: <strong class="text-zinc-700 dark:text-zinc-300">{{ item.minStock || 0 }}</strong></span>
+            <span class="text-zinc-300 dark:text-zinc-700 hidden xs:inline">•</span>
+            <span>
+              Sisa: 
+              <strong 
+                :class="[
+                  'font-mono',
+                  item.daysOfSupply <= 3 ? 'text-rose-600 dark:text-rose-400 font-black' :
+                  item.daysOfSupply <= (item.leadTime || 7) ? 'text-amber-600 dark:text-amber-400 font-bold' :
+                  'text-zinc-700 dark:text-zinc-300'
+                ]"
+              >
+                {{ item.daysOfSupplyText }}
+              </strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Baris 3: Saran Beli / ADU & Tombol Aksi Kompak -->
+        <div class="flex items-center justify-between gap-2 pt-0.5">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <div v-if="item.suggestedOrderQty > 0" class="flex items-center gap-1 text-[10.5px]">
+              <span class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-300/60 dark:border-amber-800 font-bold whitespace-nowrap">
+                Beli +{{ item.suggestedOrderQty }} {{ item.satuan }}
+              </span>
+            </div>
+            <span v-else class="text-[10px] text-zinc-400">
+              ADU: <strong class="text-zinc-600 dark:text-zinc-400 font-mono">{{ item.adu }}</strong>/h
+            </span>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button 
+              @click="openPPICModalForItem(item)"
+              class="py-1 px-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-lg text-[10.5px] font-semibold border border-zinc-200 dark:border-zinc-700 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Calculator class="w-3 h-3 text-zinc-500 dark:text-zinc-400" />
+              <span>Simulasi</span>
+            </button>
+
+            <button 
+              v-if="item.suggestedOrderQty > 0"
+              @click="orderSingleItem(item)"
+              class="py-1 px-2.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-lg text-[10.5px] font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm"
+            >
+              <Plus class="w-3 h-3" />
+              <span>Pesan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop View: Tabel Analisa Pengadaan PPIC (Khusus Layar Sedang/Besar md:block) -->
+    <div v-if="!isLoading" class="hidden md:block glass-card overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
@@ -314,23 +454,25 @@
               <!-- Aksi Cepat -->
               <td class="py-2.5 px-3 text-center">
                 <div class="flex items-center justify-center gap-1.5">
+                  <!-- Simulasi Modal Button -->
+                  <button 
+                    @click="openPPICModalForItem(item)"
+                    class="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg text-[11px] font-bold border border-zinc-300 dark:border-zinc-700 transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                    title="Buka Simulasi Kalkulator PPIC untuk barang ini"
+                  >
+                    <Calculator class="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-300" />
+                    <span>Simulasi</span>
+                  </button>
+                  
                   <!-- Pesan Single Item -->
                   <button 
                     v-if="item.suggestedOrderQty > 0"
                     @click="orderSingleItem(item)"
-                    class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow-xs transition-all flex items-center gap-1"
+                    class="px-2.5 py-1 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-lg text-[11px] font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
                     title="Buat Dokumen Transfer Masuk untuk Barang Ini"
                   >
                     <Plus class="w-3 h-3" />
                     <span>Pesan</span>
-                  </button>
-                  <!-- Simulasi Modal -->
-                  <button 
-                    @click="openPPICModalForItem(item)"
-                    class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-emerald-600 transition-colors"
-                    title="Simulasi Perhitungan PPIC"
-                  >
-                    <Calculator class="w-3.5 h-3.5" />
                   </button>
                 </div>
               </td>
@@ -338,154 +480,567 @@
           </tbody>
         </table>
       </div>
+    </div>
 
-      <!-- Pagination -->
-      <div class="p-2.5 border-t border-slate-200/60 dark:border-slate-800">
-        <Pagination 
-          :current-page="currentPage"
-          :page-size="pageSize"
-          :total-items="filteredItems.length"
-          @update:current-page="currentPage = $event"
-          @update:page-size="pageSize = $event"
-        />
+    <!-- Unified Pagination untuk Mobile & Desktop -->
+    <div v-if="!isLoading && filteredItems.length > 0" class="glass-card p-2.5">
+      <Pagination 
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total-items="filteredItems.length"
+        @update:current-page="currentPage = $event"
+        @update:page-size="pageSize = $event"
+      />
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL ASISTEN KALKULATOR PPIC CERDAS & EDUKASI STEP-BY-STEP    -->
+    <!-- ============================================================== -->
+    <div 
+      v-if="isPPICModalOpen && ppicCalcData" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 backdrop-blur-md p-2.5 sm:p-4 transition-all"
+    >
+      <div class="bg-white dark:bg-zinc-950 w-full max-w-3xl rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[94vh]">
+        
+        <!-- Header Modal Monokrom Estetik -->
+        <div class="px-5 sm:px-6 py-4 bg-zinc-50 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-bold shadow-sm">
+              <Calculator class="w-4 h-4" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white">
+                  Simulasi Kalkulator PPIC Cerdas
+                </h3>
+                <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700">
+                  Step-by-Step
+                </span>
+              </div>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Visualisasi tahap perhitungan & rumus matematis dinamis berbasis histori 90 hari.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Tombol Buka Kamus Awam -->
+            <button 
+              @click="isHelpGuideOpen = true"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition-colors border border-zinc-200 dark:border-zinc-700"
+              title="Buka Penjelasan Istilah PPIC untuk Pemula"
+            >
+              <HelpCircle class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
+              <span class="hidden sm:inline">Kamus Awam</span>
+            </button>
+
+            <!-- Tombol Tutup -->
+            <button 
+              @click="isPPICModalOpen = false" 
+              class="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable Modal Body -->
+        <div class="p-4 sm:p-6 overflow-y-auto space-y-5 bg-white dark:bg-zinc-950 text-xs">
+          
+          <!-- 1. Ringkasan SKU & Informasi Stok Fisik -->
+          <div class="p-3.5 sm:p-4 bg-zinc-50 dark:bg-zinc-900/60 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-start sm:items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-700 dark:text-zinc-300">
+                <Package class="w-5 h-5" />
+              </div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="font-mono font-bold text-xs bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-2 py-0.5 rounded-md">
+                    {{ ppicCalcData.uniqCode }}
+                  </span>
+                  <span class="text-[10px] text-zinc-400 font-mono">
+                    Satuan: {{ ppicCalcData.satuan }}
+                  </span>
+                  
+                  <!-- Dropdown Switcher Barang Lain -->
+                  <div class="flex items-center gap-1.5 ml-1">
+                    <span class="text-[9px] text-zinc-400 font-mono">Ganti:</span>
+                    <select 
+                      :value="targetItem?.uniqCode" 
+                      @change="onSwitchSimulatedItem($event.target.value)"
+                      class="px-2 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md text-[10px] font-bold text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer"
+                    >
+                      <option v-for="it in itemsWithStock" :key="it.uniqCode" :value="it.uniqCode">
+                        {{ it.uniqCode }} - {{ it.deskripsi }} (Stok: {{ it.currentStock }})
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <h4 class="font-bold text-sm text-zinc-950 dark:text-white mt-1">
+                  {{ ppicCalcData.deskripsi }}
+                </h4>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between sm:justify-end gap-4 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-200 dark:border-zinc-800">
+              <div class="text-left sm:text-right">
+                <span class="text-[10px] uppercase font-mono text-zinc-400 block">Stok Fisik Gudang</span>
+                <span class="text-base sm:text-lg font-black text-zinc-950 dark:text-white">
+                  {{ ppicCalcData.currentStock }} {{ ppicCalcData.satuan }}
+                </span>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] uppercase font-mono text-zinc-400 block">Total 90 Hari</span>
+                <span class="text-sm sm:text-base font-bold text-zinc-700 dark:text-zinc-300">
+                  {{ ppicCalcData.totalOutQty }} {{ ppicCalcData.satuan }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Parameter Kontrol Interaktif (Sliders + Presets) -->
+          <div class="p-4 bg-zinc-50/80 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-3.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Sliders class="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+                <h4 class="font-bold text-xs uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                  Uji Coba Parameter Simulasi (Angka Live)
+                </h4>
+              </div>
+              <span class="text-[10px] text-zinc-400 font-mono">
+                Geser slider untuk melihat perubahan rumus seketika
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Parameter 1: Lead Time Supplier -->
+              <div class="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="font-bold text-xs text-zinc-900 dark:text-zinc-100 block">
+                      Lead Time Supplier
+                    </label>
+                    <span class="text-[10px] text-zinc-400">
+                      Waktu tunggu kiriman sampai di gudang
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-lg border border-zinc-300 dark:border-zinc-700">
+                    <input 
+                      v-model.number="simLeadTime" 
+                      type="number"
+                      min="1"
+                      max="90"
+                      @input="recalculatePPIC"
+                      class="w-10 bg-transparent font-black text-xs text-right text-zinc-950 dark:text-white outline-none"
+                    />
+                    <span class="text-[10px] font-mono text-zinc-500">hari</span>
+                  </div>
+                </div>
+
+                <!-- Slider -->
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="45" 
+                  v-model.number="simLeadTime" 
+                  @input="recalculatePPIC" 
+                  class="w-full accent-zinc-950 dark:accent-white cursor-pointer"
+                />
+
+                <!-- Preset Buttons -->
+                <div class="flex items-center gap-1.5 pt-1">
+                  <span class="text-[9px] text-zinc-400 font-mono">Preset:</span>
+                  <button 
+                    @click="setLeadTimePreset(3)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simLeadTime === 3 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    3h (Lokal)
+                  </button>
+                  <button 
+                    @click="setLeadTimePreset(7)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simLeadTime === 7 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    7h (Reguler)
+                  </button>
+                  <button 
+                    @click="setLeadTimePreset(14)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simLeadTime === 14 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    14h (Luar Kota)
+                  </button>
+                  <button 
+                    @click="setLeadTimePreset(30)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simLeadTime === 30 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    30h (Impor)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Parameter 2: Siklus Belanja / Review Period -->
+              <div class="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="font-bold text-xs text-zinc-900 dark:text-zinc-100 block">
+                      Siklus Belanja (Review)
+                    </label>
+                    <span class="text-[10px] text-zinc-400">
+                      Jadwal evaluasi pengadaan berkala
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-lg border border-zinc-300 dark:border-zinc-700">
+                    <input 
+                      v-model.number="simReviewPeriod" 
+                      type="number"
+                      min="1"
+                      max="90"
+                      @input="recalculatePPIC"
+                      class="w-10 bg-transparent font-black text-xs text-right text-zinc-950 dark:text-white outline-none"
+                    />
+                    <span class="text-[10px] font-mono text-zinc-500">hari</span>
+                  </div>
+                </div>
+
+                <!-- Slider -->
+                <input 
+                  type="range" 
+                  min="3" 
+                  max="60" 
+                  v-model.number="simReviewPeriod" 
+                  @input="recalculatePPIC" 
+                  class="w-full accent-zinc-950 dark:accent-white cursor-pointer"
+                />
+
+                <!-- Preset Buttons -->
+                <div class="flex items-center gap-1.5 pt-1">
+                  <span class="text-[9px] text-zinc-400 font-mono">Preset:</span>
+                  <button 
+                    @click="setReviewPeriodPreset(7)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simReviewPeriod === 7 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    7h (Mingguan)
+                  </button>
+                  <button 
+                    @click="setReviewPeriodPreset(14)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simReviewPeriod === 14 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    14h (2 Minggu)
+                  </button>
+                  <button 
+                    @click="setReviewPeriodPreset(30)"
+                    :class="['px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors', simReviewPeriod === 30 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400']"
+                  >
+                    30h (Bulanan)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Meteran Visual Posisi Stok (Live Stock Gauge Bar) -->
+          <div v-if="stockGauge" class="p-4 bg-zinc-50/80 dark:bg-zinc-900/40 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Gauge class="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+                <h4 class="font-bold text-xs uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                  Meteran Status Persediaan Saat Ini
+                </h4>
+              </div>
+              <span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold border', stockGauge.badgeClass]">
+                {{ stockGauge.statusText }}
+              </span>
+            </div>
+
+            <!-- Gauge Progress Bar -->
+            <div class="space-y-1.5 pt-2">
+              <div class="relative w-full h-4 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden flex shadow-inner">
+                <!-- Zone 1: Critical / Safety Stock -->
+                <div 
+                  :style="{ width: `${stockGauge.ssPercent}%` }" 
+                  class="h-full bg-rose-500/80" 
+                  title="Zona Kritis (Safety Stock)"
+                ></div>
+                <!-- Zone 2: Reorder Zone (SS to ROP) -->
+                <div 
+                  :style="{ width: `${Math.max(0, stockGauge.ropPercent - stockGauge.ssPercent)}%` }" 
+                  class="h-full bg-amber-400/80" 
+                  title="Zona Reorder (Stok ≤ ROP)"
+                ></div>
+                <!-- Zone 3: Optimal Zone (ROP to Max) -->
+                <div 
+                  :style="{ width: `${Math.max(0, stockGauge.maxPercent - stockGauge.ropPercent)}%` }" 
+                  class="h-full bg-emerald-500/80" 
+                  title="Zona Sehat / Optimal"
+                ></div>
+                <!-- Zone 4: Overstock (> Max) -->
+                <div 
+                  class="flex-1 h-full bg-purple-500/60" 
+                  title="Zona Overstock"
+                ></div>
+              </div>
+
+              <!-- Pin Penunjuk Posisi Stok Fisik Saat Ini -->
+              <div class="relative w-full h-6 select-none">
+                <div 
+                  class="absolute -top-3.5 flex flex-col items-center transition-all duration-300 -translate-x-1/2"
+                  :style="{ left: `${stockGauge.stockPercent}%` }"
+                >
+                  <div class="w-3.5 h-3.5 bg-zinc-950 dark:bg-white rounded-full border-2 border-white dark:border-zinc-950 shadow-md"></div>
+                  <span class="text-[9px] font-black font-mono bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 px-1.5 py-0.2 rounded mt-0.5 shadow-sm whitespace-nowrap">
+                    Stok: {{ ppicCalcData.currentStock }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Legend Titik Ambang -->
+              <div class="grid grid-cols-4 text-center text-[10px] font-mono pt-1 text-zinc-500 dark:text-zinc-400 border-t border-zinc-200/60 dark:border-zinc-800/60">
+                <div>
+                  <span class="block text-zinc-400 text-[9px]">0 (Habis)</span>
+                  <strong>0 Unit</strong>
+                </div>
+                <div>
+                  <span class="block text-rose-600 dark:text-rose-400 text-[9px] font-bold">Safety Stock</span>
+                  <strong class="text-zinc-900 dark:text-white">{{ ppicCalcData.safetyStock }}</strong>
+                </div>
+                <div>
+                  <span class="block text-amber-600 dark:text-amber-400 text-[9px] font-bold">Titik Pesan (ROP)</span>
+                  <strong class="text-zinc-900 dark:text-white">{{ ppicCalcData.recommendedRop }}</strong>
+                </div>
+                <div>
+                  <span class="block text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">Maks. Stok</span>
+                  <strong class="text-zinc-900 dark:text-white">{{ ppicCalcData.recommendedMaxStock }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Penjelasan status bahasa awam -->
+            <p class="text-[11px] text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-start gap-2">
+              <Lightbulb class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <span><strong>Panduan Status:</strong> {{ stockGauge.statusDesc }}</span>
+            </p>
+          </div>
+
+          <!-- 4. Tahap demi Tahap Perhitungan Dinamis (5 Steps) -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Layers class="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+                <h4 class="font-bold text-xs uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                  5 Tahap Logika Perhitungan (Formula Live)
+                </h4>
+              </div>
+              <span class="text-[10px] text-zinc-400">
+                Klik kartu untuk melihat detail bahasa awam
+              </span>
+            </div>
+
+            <!-- Loop 5 Dynamic Steps -->
+            <div class="space-y-2.5">
+              <div 
+                v-for="(st, idx) in dynamicSteps" 
+                :key="st.id"
+                class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 rounded-2xl p-3.5 transition-all space-y-3 shadow-xs"
+              >
+                <!-- Step Header -->
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-start gap-2.5">
+                    <!-- Step Number Badge -->
+                    <span class="w-6 h-6 rounded-lg bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black text-xs flex items-center justify-center shrink-0">
+                      {{ st.step }}
+                    </span>
+                    <div>
+                      <h5 class="font-bold text-xs sm:text-sm text-zinc-950 dark:text-white">
+                        Tahap {{ st.step }}: {{ st.title }}
+                      </h5>
+                      <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        {{ st.tagline }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Result Badge -->
+                  <div class="text-right shrink-0">
+                    <span class="inline-block px-2.5 py-1 rounded-xl font-black text-xs font-mono bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white border border-zinc-300 dark:border-zinc-700">
+                      {{ st.resultValue }}
+                    </span>
+                    <span class="block text-[9px] text-zinc-400 font-mono mt-0.5">
+                      {{ st.resultSub }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Live Dynamic Formula Box -->
+                <div class="p-2.5 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200 dark:border-zinc-800 font-mono text-[11px] space-y-1">
+                  <!-- Rumus Umum -->
+                  <div class="text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+                    <span>Rumus:</span>
+                    <span class="text-zinc-700 dark:text-zinc-300 font-semibold">{{ st.formulaGeneral }}</span>
+                  </div>
+                  <!-- Substitusi Angka Live -->
+                  <div class="text-zinc-900 dark:text-white pt-1 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between font-bold">
+                    <span>Hitungan Live:</span>
+                    <span class="bg-zinc-200/70 dark:bg-zinc-800/80 px-2 py-0.5 rounded text-zinc-950 dark:text-white">
+                      {{ st.formulaApplied }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Penjelasan Bahasa Manusia / Awam -->
+                <div class="p-2.5 bg-zinc-100/60 dark:bg-zinc-800/40 rounded-xl text-[11px] text-zinc-700 dark:text-zinc-300 space-y-1.5 border border-zinc-200/60 dark:border-zinc-700/60">
+                  <div class="flex items-start gap-1.5 font-medium">
+                    <span class="text-xs">💡</span>
+                    <span><strong>Analogi Sederhana:</strong> {{ st.analogy }}</span>
+                  </div>
+                  <p class="leading-relaxed text-zinc-600 dark:text-zinc-400 pl-4 border-l-2 border-zinc-300 dark:border-zinc-700">
+                    {{ st.explanation }}
+                  </p>
+                  <p class="text-[10px] text-zinc-500 dark:text-zinc-400 italic pl-4">
+                    ⚠️ <strong>Kenapa penting:</strong> {{ st.whyImportant }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer Modal Actions -->
+        <div class="px-5 sm:px-6 py-3.5 bg-zinc-50 dark:bg-zinc-900/90 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <button 
+            type="button" 
+            @click="isPPICModalOpen = false" 
+            class="px-4 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors order-2 sm:order-1"
+          >
+            Tutup
+          </button>
+
+          <div class="flex items-center gap-2 order-1 sm:order-2">
+            <!-- Pesan Cepat Langsung jika butuh dipesan -->
+            <button 
+              v-if="ppicCalcData.suggestedOrderQty > 0"
+              type="button"
+              @click="orderSimulatedItem"
+              class="px-4 py-2 text-xs font-bold text-zinc-900 dark:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+              title="Langsung buat dokumen Transfer Order Masuk untuk jumlah ini"
+            >
+              <ShoppingCart class="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
+              <span>+ Pesan ({{ ppicCalcData.suggestedOrderQty }} {{ ppicCalcData.satuan }})</span>
+            </button>
+
+            <!-- Terapkan ke Master SKU -->
+            <button 
+              type="button" 
+              @click="applyPRICToItem" 
+              class="px-4 py-2 text-xs font-bold text-white bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 rounded-xl transition-all flex items-center gap-1.5 shadow-sm border border-zinc-950 dark:border-white"
+            >
+              <CheckCircle2 class="w-3.5 h-3.5" />
+              <span>Terapkan Parameter ke SKU</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ============================================================== -->
-    <!-- MODAL ASISTEN KALKULATOR PPIC CERDAS                           -->
+    <!-- MODAL KAMUS ISTILAH & KONSEP PPIC RAMAH PEMULA                -->
     <!-- ============================================================== -->
     <div 
-      v-if="isPPICModalOpen && ppicCalcData" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 transition-all"
+      v-if="isHelpGuideOpen" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/70 backdrop-blur-md p-3 sm:p-4 transition-all"
     >
-      <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl sm:rounded-3xl shadow-2xl shadow-emerald-500/10 dark:shadow-black/70 border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-black/5 dark:ring-white/10">
-        <!-- Top Light Gradient Bar -->
-        <div class="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-blue-500"></div>
-
-        <!-- Header Modal -->
-        <div class="px-5 sm:px-6 py-4 bg-gradient-to-b from-emerald-50/70 via-teal-50/20 to-white dark:from-slate-800/80 dark:to-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/25 shadow-sm">
-              <Calculator class="w-5 h-5" />
+      <div class="bg-white dark:bg-zinc-950 w-full max-w-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[88vh]">
+        <!-- Header Kamus -->
+        <div class="px-5 py-4 bg-zinc-50 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-bold">
+              <Lightbulb class="w-4 h-4" />
             </div>
             <div>
-              <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <span>Asisten Kalkulator PPIC Cerdas</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/25">Min-Max</span>
+              <h3 class="text-sm font-bold text-zinc-950 dark:text-white">
+                Kamus Awam: Istilah Kunci PPIC
               </h3>
-              <p class="text-[11px] text-slate-400">Prediksi berbasis formula PPIC dari histori mutasi keluar 90 hari.</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Penjelasan konsep manajemen stok dengan analogi kehidupan sehari-hari.
+              </p>
             </div>
           </div>
-          <button @click="isPPICModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <X class="w-5 h-5" />
+          <button @click="isHelpGuideOpen = false" class="p-1 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+            <X class="w-4 h-4" />
           </button>
         </div>
 
-        <div class="p-5 overflow-y-auto space-y-4 bg-white dark:bg-slate-900 text-xs">
-          <!-- Item Info Card -->
-          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700">
-            <div>
-              <span class="font-mono font-bold text-[11px] bg-slate-200/70 dark:bg-slate-700 px-1.5 py-0.5 rounded mr-1.5 text-slate-800 dark:text-slate-200">
-                {{ ppicCalcData.uniqCode }}
-              </span>
-              <strong class="text-slate-900 dark:text-white">{{ ppicCalcData.deskripsi }}</strong>
+        <!-- Isi Kamus Awam -->
+        <div class="p-5 overflow-y-auto space-y-3.5 text-xs">
+          
+          <!-- Istilah 1: Lead Time -->
+          <div class="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <strong class="text-zinc-950 dark:text-white text-xs">1. Lead Time (Waktu Tunggu Pengiriman)</strong>
+              <span class="text-[10px] font-mono text-zinc-400">Hari</span>
             </div>
-            <div class="text-right">
-              <span class="text-[10px] text-slate-400 block">Stok Fisik Saat Ini</span>
-              <span class="font-extrabold text-sm text-slate-900 dark:text-white">{{ ppicCalcData.currentStock }} {{ ppicCalcData.satuan }}</span>
-            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>Analogi:</strong> Berapa lama kurir/ojol butuh waktu mengantar pesanan makanan dari restoran sampai ke pintu rumah Anda.<br>
+              <strong>Arti di Gudang:</strong> Total hari yang dibutuhkan supplier sejak PO diterbitkan, diproduksi, dikemas, hingga barang masuk dan diverifikasi di gudang.
+            </p>
           </div>
 
-          <!-- Parameter Simulasi -->
-          <div class="space-y-2">
-            <span class="font-bold text-[11px] uppercase tracking-wider text-slate-500 block">Parameter Simulasi Gudang:</span>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/70 dark:border-slate-700">
-                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Lead Time Supplier (Hari):
-                </label>
-                <div class="flex items-center gap-2">
-                  <input 
-                    v-model.number="simLeadTime" 
-                    type="number"
-                    min="1"
-                    @input="recalculatePPIC"
-                    class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-xs"
-                  />
-                  <span class="text-slate-400 text-xs">hari</span>
-                </div>
-              </div>
-
-              <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/70 dark:border-slate-700">
-                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Siklus Pengadaan / Belanja:
-                </label>
-                <div class="flex items-center gap-2">
-                  <input 
-                    v-model.number="simReviewPeriod" 
-                    type="number"
-                    min="1"
-                    @input="recalculatePPIC"
-                    class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-bold text-xs"
-                  />
-                  <span class="text-slate-400 text-xs">hari</span>
-                </div>
-              </div>
+          <!-- Istilah 2: ADU & MDU -->
+          <div class="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <strong class="text-zinc-950 dark:text-white text-xs">2. ADU & MDU (Kecepatan Pemakaian)</strong>
+              <span class="text-[10px] font-mono text-zinc-400">Unit/Hari</span>
             </div>
+            <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>Analogi:</strong> Menghitung konsumsi bensin kendaraan Anda per hari (misal 2 liter/hari). Pada hari bepergian jauh, konsumsi melonjak ke angka tertinggi (MDU).<br>
+              <strong>Arti di Gudang:</strong> Rata-rata berapa barang keluar dalam sehari (ADU), dan hari tersibuk pernah keluar berapa (MDU).
+            </p>
           </div>
 
-          <!-- Riwayat 90 Hari -->
-          <div class="grid grid-cols-3 gap-2 p-3 bg-slate-50/70 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-700 text-center">
-            <div>
-              <span class="text-[10px] text-slate-400 block">Total Keluar 90 Hari</span>
-              <strong class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ ppicCalcData.totalOutQty }} {{ ppicCalcData.satuan }}</strong>
+          <!-- Istilah 3: Safety Stock -->
+          <div class="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <strong class="text-zinc-950 dark:text-white text-xs">3. Safety Stock (Stok Pengaman)</strong>
+              <span class="text-[10px] font-mono text-zinc-400">Ban Serep</span>
             </div>
-            <div>
-              <span class="text-[10px] text-slate-400 block">Rata-rata/Hari (ADU)</span>
-              <strong class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ ppicCalcData.adu }} /h</strong>
-            </div>
-            <div>
-              <span class="text-[10px] text-slate-400 block">Puncak/Hari (MDU)</span>
-              <strong class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ ppicCalcData.mdu }} /h</strong>
-            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>Analogi:</strong> Ban serep di bagasi mobil. Tidak pernah dipakai harian, tetapi wajib ada jika ban bocor di jalan tol.<br>
+              <strong>Arti di Gudang:</strong> Stok cadangan ekstra untuk melindungi operasional jika kiriman supplier macet atau pembeli tiba-tiba memborong dalam jumlah besar.
+            </p>
           </div>
 
-          <!-- Hasil Rekomendasi PPIC -->
-          <div class="grid grid-cols-3 gap-2.5">
-            <div class="p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-900/50 text-center">
-              <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 block">Safety Stock</span>
-              <strong class="text-base font-black text-blue-700 dark:text-blue-300">{{ ppicCalcData.safetyStock }}</strong>
-              <span class="text-[9px] text-blue-500 block">Pengaman</span>
+          <!-- Istilah 4: Reorder Point (ROP) -->
+          <div class="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <strong class="text-zinc-950 dark:text-white text-xs">4. Reorder Point / ROP (Alarm Pemesanan Ulang)</strong>
+              <span class="text-[10px] font-mono text-zinc-400">Min. Stock</span>
             </div>
-            <div class="p-3 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/50 text-center">
-              <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 block">Min. Stok (ROP)</span>
-              <strong class="text-base font-black text-amber-700 dark:text-amber-300">{{ ppicCalcData.recommendedRop }}</strong>
-              <span class="text-[9px] text-amber-500 block">Titik Pesan</span>
-            </div>
-            <div class="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-900/50 text-center">
-              <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">Maks. Stok</span>
-              <strong class="text-base font-black text-emerald-700 dark:text-emerald-300">{{ ppicCalcData.recommendedMaxStock }}</strong>
-              <span class="text-[9px] text-emerald-500 block">Kapasitas Aman</span>
-            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>Analogi:</strong> Lampu indikator bensin mobil yang menyala oranye. Memberitahu Anda "Cari pom bensin sekarang sebelum kehabisan!".<br>
+              <strong>Arti di Gudang:</strong> Saat sisa stok menyentuh angka ini, Anda HARUS memesan ke supplier sekarang juga agar barang baru datang tepat sebelum stok habis.
+            </p>
           </div>
+
+          <!-- Istilah 5: Max Stock -->
+          <div class="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <strong class="text-zinc-950 dark:text-white text-xs">5. Max Stock (Kapasitas Maksimal Aman)</strong>
+              <span class="text-[10px] font-mono text-zinc-400">Plafon</span>
+            </div>
+            <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <strong>Analogi:</strong> Kapasitas tangki bensin penuh. Jangan mengisi meluber keluar karena bensin tumpah dan mubazir.<br>
+              <strong>Arti di Gudang:</strong> Batas maksimal stok yang boleh disimpan agar kas perusahaan tidak membeku menjadi barang mati dan rak gudang tidak overload.
+            </p>
+          </div>
+
         </div>
 
-        <!-- Footer Modal -->
-        <div class="px-5 sm:px-6 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <!-- Footer Kamus -->
+        <div class="px-5 py-3 bg-zinc-50 dark:bg-zinc-900/80 border-t border-zinc-200 dark:border-zinc-800 text-right">
           <button 
-            type="button" 
-            @click="isPPICModalOpen = false" 
-            class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            @click="isHelpGuideOpen = false" 
+            class="px-4 py-1.5 bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 font-bold rounded-xl text-xs"
           >
-            Tutup
-          </button>
-          <button 
-            type="button" 
-            @click="applyPRICToItem" 
-            class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5"
-          >
-            <CheckCircle2 class="w-3.5 h-3.5" />
-            <span>Simpan Perubahan ke Database</span>
+            Saya Paham, Tutup Panduan
           </button>
         </div>
       </div>
@@ -508,9 +1063,22 @@ import {
   CheckCircle2, 
   ArrowUp, 
   ArrowDown, 
-  ChevronsUpDown 
+  ChevronsUpDown,
+  HelpCircle,
+  Info,
+  Lightbulb,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  ArrowRight,
+  ShieldCheck,
+  Package,
+  Sliders,
+  Gauge,
+  Layers
 } from 'lucide-vue-next';
 import * as XLSX from 'xlsx';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
 
 const props = defineProps({
   itemsWithStock: {
@@ -520,6 +1088,10 @@ const props = defineProps({
   transactions: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -532,8 +1104,11 @@ const sortOrder = ref('desc');
 const currentPage = ref(1);
 const pageSize = ref(10);
 
-// State Modal Simulasi PPIC
+// State Modal Simulasi PPIC & Bantuan Edukasi Awam
 const isPPICModalOpen = ref(false);
+const isHelpGuideOpen = ref(false);
+const activeTooltipStep = ref(null);
+const expandedStepIndex = ref(null);
 const ppicCalcData = ref(null);
 const simLeadTime = ref(7);
 const simReviewPeriod = ref(14);
@@ -658,6 +1233,24 @@ function getSortIcon(key) {
   return sortOrder.value === 'asc' ? ArrowUp : ArrowDown;
 }
 
+// Buka Modal PPIC Umum (Langsung dari Header Banner)
+function openGeneralPPICCalculator() {
+  const defaultItem = reorderItems.value[0] || props.itemsWithStock[0];
+  if (defaultItem) {
+    openPPICModalForItem(defaultItem);
+  } else {
+    alert('Belum ada data barang di master item.');
+  }
+}
+
+// Ganti Barang Langsung dari Dalam Modal Simulasi
+function onSwitchSimulatedItem(uniqCode) {
+  const found = props.itemsWithStock.find(i => i.uniqCode === uniqCode);
+  if (found) {
+    openPPICModalForItem(found);
+  }
+}
+
 // Buka Modal PPIC per item
 async function openPPICModalForItem(item) {
   targetItem.value = item;
@@ -675,6 +1268,179 @@ async function recalculatePPIC() {
     simLeadTime.value, 
     simReviewPeriod.value
   );
+}
+
+function setLeadTimePreset(days) {
+  simLeadTime.value = days;
+  recalculatePPIC();
+}
+
+function setReviewPeriodPreset(days) {
+  simReviewPeriod.value = days;
+  recalculatePPIC();
+}
+
+function toggleStepExplanation(index) {
+  expandedStepIndex.value = expandedStepIndex.value === index ? null : index;
+}
+
+// 5 Tahap Perhitungan Dinamis dengan Penjelasan Ramah Pemula
+const dynamicSteps = computed(() => {
+  if (!ppicCalcData.value) return [];
+  const d = ppicCalcData.value;
+  const lt = Number(simLeadTime.value) || 7;
+  const rp = Number(simReviewPeriod.value) || 14;
+  const adu = d.adu || 0;
+  const mdu = d.mdu || 0;
+  const stock = d.currentStock || 0;
+
+  const ltd = Number((adu * lt).toFixed(1));
+  const ss = d.safetyStock;
+  const rop = d.recommendedRop;
+  const cs = Math.max(5, Math.ceil(adu * rp));
+  const max = d.recommendedMaxStock;
+  const orderQty = Math.max(0, max - stock);
+
+  return [
+    {
+      step: 1,
+      id: 'adu',
+      title: 'Kecepatan Barang Habis (ADU & MDU)',
+      tagline: 'Seberapa cepat barang ini laku & keluar dari gudang setiap harinya?',
+      resultValue: `${adu} ${d.satuan}/hari`,
+      resultSub: `Puncak: ${mdu} ${d.satuan}/hari`,
+      formulaGeneral: 'ADU = Total Pengeluaran (90 Hari) ÷ 90 Hari',
+      formulaApplied: `${d.totalOutQty} ${d.satuan} ÷ 90 hari = ${adu} ${d.satuan}/hari`,
+      formulaSecondary: `MDU (Pengeluaran Puncak Sehari) = ${mdu} ${d.satuan}`,
+      analogy: 'Ibarat menghitung berapa liter bensin yang motor Anda habiskan setiap harinya.',
+      explanation: `Dalam 90 hari terakhir, rata-rata ada ${adu} ${d.satuan} yang keluar dari gudang per hari. Hari tersibuk pernah menghabiskan ${mdu} ${d.satuan} dalam satu hari.`,
+      whyImportant: 'Kecepatan habis ini menjadi kompas utama untuk memperkirakan berapa banyak stok yang bakal terpakai saat menunggu kiriman datang.'
+    },
+    {
+      step: 2,
+      id: 'ss',
+      title: 'Stok Cadangan Darurat (Safety Stock)',
+      tagline: 'Berapa unit "ban serep" yang wajib disimpan untuk jaga-jaga?',
+      resultValue: `${ss} ${d.satuan}`,
+      resultSub: 'Zona Cadangan Darurat',
+      formulaGeneral: 'Safety Stock = (Puncak Harian × Lead Time) - (Rata-rata Harian × Lead Time)',
+      formulaApplied: `(${mdu} × ${lt} hari) - (${adu} × ${lt} hari) = ${(mdu * lt).toFixed(0)} - ${(adu * lt).toFixed(1)} ≈ ${ss} ${d.satuan}`,
+      formulaSecondary: 'Stok pengaman ini tidak boleh disentuh pada kondisi operasional normal.',
+      analogy: 'Ibarat ban serep di bagasi mobil, hanya dipakai saat kondisi darurat.',
+      explanation: `Safety Stock adalah cadangan penyelamat. Jika supplier telat kirim atau tiba-tiba pelanggan memborong banyak selama masa tunggu ${lt} hari, Anda masih punya ${ss} ${d.satuan} cadangan sehingga gudang tidak kosong melompong (stockout).`,
+      whyImportant: `Jika sisa stok gudang sudah menyentuh angka ${ss} ${d.satuan}, artinya Anda sudah memakai ban serep dan berada di zona bahaya kritis!`
+    },
+    {
+      step: 3,
+      id: 'rop',
+      title: 'Titik Pesan Ulang (Reorder Point / ROP)',
+      tagline: 'Kapan saat yang tepat untuk membuat pesanan baru ke supplier?',
+      resultValue: `${rop} ${d.satuan}`,
+      resultSub: 'Ambang Minimum Pemesanan',
+      formulaGeneral: 'ROP = (Konsumsi Selama Lead Time) + Safety Stock',
+      formulaApplied: `(${adu} × ${lt} hari) + ${ss} = ${ltd} + ${ss} = ${rop} ${d.satuan}`,
+      formulaSecondary: `Konsumsi Selama Tunggu Kiriman (${lt} hari) = ${ltd} ${d.satuan}`,
+      analogy: 'Ibarat lampu indikator bensin berkedip di dashboard speedometer Anda.',
+      explanation: `Jangan tunggu stok habis jadi 0 baru pesan! Ketika sisa stok di gudang turun menyentuh ${rop} ${d.satuan}, Anda HARUS SEGERA memesan. Selama ${lt} hari menunggu supplier, gudang akan menghabiskan ${ltd} ${d.satuan}, sehingga barang baru tiba tepat saat stok mendekati angka cadangan.`,
+      whyImportant: `Memastikan gudang tidak pernah kekurangan barang tanpa harus menimbun stok terlalu banyak.`
+    },
+    {
+      step: 4,
+      id: 'max',
+      title: 'Kapasitas Maksimal Gudang (Max Stock)',
+      tagline: 'Berapa batas paling banyak barang boleh disimpan di rak?',
+      resultValue: `${max} ${d.satuan}`,
+      resultSub: 'Plafon Aman Gudang',
+      formulaGeneral: 'Max Stock = Titik Pesan (ROP) + (Konsumsi Harian × Siklus Belanja)',
+      formulaApplied: `${rop} + (${adu} × ${rp} hari) = ${rop} + ${cs} = ${max} ${d.satuan}`,
+      formulaSecondary: `Kebutuhan Siklus Belanja (${rp} hari) = ${cs} ${d.satuan}`,
+      analogy: 'Ibarat kapasitas maksimal tangki bahan bakar kendaraan Anda.',
+      explanation: `Gudang sebaiknya tidak menampung lebih dari ${max} ${d.satuan}. Menyimpan terlalu banyak barang akan membekukan uang kas perusahaan (modal mandek), membuat rak sempit (overstock), dan meningkatkan risiko barang rusak.`,
+      whyImportant: `Menjaga perputaran modal kerja (cash flow) tetap sehat dan efisien.`
+    },
+    {
+      step: 5,
+      id: 'order',
+      title: 'Rekomendasi Jumlah Pesan (Order Quantity)',
+      tagline: 'Berapa banyak unit yang perlu di-checkout sekarang?',
+      resultValue: `${orderQty} ${d.satuan}`,
+      resultSub: orderQty > 0 ? 'Waktunya Belanja' : 'Persediaan Masih Aman',
+      formulaGeneral: 'Saran Pesan = Kapasitas Maksimal - Stok Fisik Saat Ini',
+      formulaApplied: `${max} - ${stock} = ${orderQty} ${d.satuan}`,
+      formulaSecondary: stock <= rop ? `Stok sekarang (${stock}) ≤ Titik Pesan (${rop}) ➔ SEGERA ORDER` : `Stok sekarang (${stock}) > Titik Pesan (${rop}) ➔ BELUM PERLU ORDER`,
+      analogy: 'Ibarat mengisi bensin dari jarum saat ini hingga tangki penuh kembali.',
+      explanation: stock <= rop
+        ? `Stok Anda saat ini (${stock} ${d.satuan}) sudah menyentuh atau berada di bawah batas pesan ulang (${rop} ${d.satuan}). Anda disarankan memesan tepat ${orderQty} ${d.satuan} agar persediaan kembali terisi penuh ke batas aman.`
+        : `Stok Anda saat ini (${stock} ${d.satuan}) masih di atas batas pesan ulang (${rop} ${d.satuan}). Persediaan gudang masih aman dan mencukupi. Anda BELUM PERLU memesan saat ini.`,
+      whyImportant: 'Mencegah pembelian berlebihan atau pembelian mendadak yang memboroskan ongkos kirim dan modal.'
+    }
+  ];
+});
+
+// Meteran Visual Posisi Stok (Stock Gauge)
+const stockGauge = computed(() => {
+  if (!ppicCalcData.value) return null;
+  const d = ppicCalcData.value;
+  const stock = Math.max(0, d.currentStock || 0);
+  const ss = d.safetyStock || 0;
+  const rop = d.recommendedRop || 0;
+  const max = d.recommendedMaxStock || 50;
+
+  const ceiling = Math.max(max * 1.25, stock * 1.2, 10);
+
+  const ssPercent = Math.min(100, Math.round((ss / ceiling) * 100));
+  const ropPercent = Math.min(100, Math.round((rop / ceiling) * 100));
+  const maxPercent = Math.min(100, Math.round((max / ceiling) * 100));
+  const stockPercent = Math.min(100, Math.max(0, Math.round((stock / ceiling) * 100)));
+
+  let statusType = 'OPTIMAL';
+  let statusText = 'Stok Sehat (Optimal)';
+  let statusDesc = 'Persediaan aman di atas batas pesan ulang dan di bawah batas maksimal.';
+  let badgeClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800';
+
+  if (stock < ss) {
+    statusType = 'CRITICAL';
+    statusText = 'KRITIS: Cadangan Darurat Terpakai!';
+    statusDesc = 'Stok saat ini sudah menembus batas safety stock. Segera pesan barang darurat!';
+    badgeClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300 dark:border-rose-800';
+  } else if (stock <= rop) {
+    statusType = 'REORDER';
+    statusText = 'WAKTUNYA REORDER: Stok ≤ ROP';
+    statusDesc = 'Stok menyentuh alarm pemesanan ulang. Buat pesanan baru ke supplier sekarang.';
+    badgeClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800';
+  } else if (stock > max) {
+    statusType = 'OVERSTOCK';
+    statusText = 'OVERSTOCK: Melampaui Batas Maksimal';
+    statusDesc = 'Persediaan melampaui plafon ideal, berisiko membebani ruang simpan dan modal.';
+    badgeClass = 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border-purple-300 dark:border-purple-800';
+  }
+
+  return {
+    ceiling,
+    ssPercent,
+    ropPercent,
+    maxPercent,
+    stockPercent,
+    statusType,
+    statusText,
+    statusDesc,
+    badgeClass
+  };
+});
+
+function orderSimulatedItem() {
+  if (!ppicCalcData.value || ppicCalcData.value.suggestedOrderQty <= 0) return;
+  emit('create-order', {
+    type: 'IN',
+    items: [{
+      uniqCode: ppicCalcData.value.uniqCode,
+      deskripsi: ppicCalcData.value.deskripsi,
+      satuan: ppicCalcData.value.satuan,
+      qty: ppicCalcData.value.suggestedOrderQty,
+      keterangan: 'Reorder Rekomendasi Simulasi PPIC'
+    }]
+  });
+  isPPICModalOpen.value = false;
 }
 
 async function applyPRICToItem() {

@@ -16,20 +16,28 @@
           <p class="text-xs text-zinc-400">Kelola seluruh arsip Transfer Order (Masuk & Keluar).</p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+          <button 
+            @click="isExportModalOpen = true"
+            class="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl font-bold text-xs border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all cursor-pointer"
+            title="Ekspor transaksi Transfer Order ke file Excel (.xlsx)"
+          >
+            <Download class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Ekspor Excel</span>
+          </button>
           <button 
             @click="openCreatePage('IN')"
-            class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs shadow-sm border border-zinc-950 dark:border-white transition-all"
+            class="flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs shadow-sm border border-zinc-950 dark:border-white transition-all cursor-pointer"
           >
             <ArrowDownLeft class="w-4 h-4" />
-            <span>+ Transfer Masuk (IN)</span>
+            <span class="truncate">+ Masuk (IN)</span>
           </button>
           <button 
             @click="openCreatePage('OUT')"
-            class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-xs border border-zinc-300 dark:border-zinc-700 shadow-sm transition-all"
+            class="flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl font-bold text-xs border border-zinc-300 dark:border-zinc-700 shadow-sm transition-all cursor-pointer"
           >
             <ArrowUpRight class="w-4 h-4 text-rose-500" />
-            <span>+ Transfer Keluar (OUT)</span>
+            <span class="truncate">+ Keluar (OUT)</span>
           </button>
         </div>
       </div>
@@ -79,8 +87,18 @@
         </div>
       </div>
 
+      <!-- Skeleton Shimmer Loading State -->
+      <div v-if="isLoading" class="space-y-4">
+        <div class="md:hidden">
+          <SkeletonLoader type="card-list" :count="4" />
+        </div>
+        <div class="hidden md:block">
+          <SkeletonLoader type="table" :count="6" />
+        </div>
+      </div>
+
       <!-- Empty State -->
-      <div v-if="filteredTransactions.length === 0" class="glass-card p-10 text-center">
+      <div v-else-if="filteredTransactions.length === 0" class="glass-card p-10 text-center">
         <div class="w-10 h-10 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-xl flex items-center justify-center mx-auto mb-2.5">
           <FileText class="w-5 h-5" />
         </div>
@@ -88,58 +106,64 @@
         <p class="text-[11px] text-slate-400 mt-0.5">Belum ada dokumen yang sesuai filter.</p>
       </div>
 
-      <!-- Mobile Cards -->
-      <div v-else class="grid grid-cols-1 gap-2.5 md:hidden">
+      <!-- Mobile Rows: Dense & Wide Layout -->
+      <div v-else class="space-y-2 md:hidden">
         <div 
           v-for="doc in paginatedTransactions" 
           :key="doc.id"
-          class="glass-card p-3.5 space-y-2.5 hover:border-emerald-500/40 transition-all"
+          class="glass-card p-2.5 space-y-1.5 hover:border-emerald-500/40 transition-all border-l-2"
+          :class="[
+            doc.type === 'IN' ? 'border-l-emerald-500' : 'border-l-rose-500'
+          ]"
         >
-          <div class="flex items-start justify-between gap-2">
-            <div>
+          <!-- Baris 1: Tipe Badge + Trx Code & No Doc + Total Qty -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
               <span 
                 :class="[
-                  'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
+                  'px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider shrink-0',
                   doc.type === 'IN' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'
                 ]"
               >
-                {{ doc.type === 'IN' ? 'TO Masuk' : 'TO Keluar' }}
+                {{ doc.type === 'IN' ? 'Masuk' : 'Keluar' }}
               </span>
-              <p class="font-mono text-xs font-bold text-slate-900 dark:text-white mt-1">{{ doc.trxCode }}</p>
+              <span class="font-mono text-xs font-bold text-slate-900 dark:text-white shrink-0">
+                {{ doc.trxCode }}
+              </span>
+              <span v-if="doc.noDocument" class="text-slate-400 text-[10.5px] font-mono truncate hidden xs:inline">
+                ({{ doc.noDocument }})
+              </span>
             </div>
-            <div class="text-right">
-              <span class="text-xs font-extrabold text-slate-900 dark:text-white">{{ doc.totalQty || 0 }} Unit</span>
-              <p class="text-[10px] text-slate-400">({{ doc.items?.length || 0 }} item)</p>
+
+            <div class="flex items-baseline gap-1 shrink-0">
+              <span class="text-xs font-extrabold text-slate-900 dark:text-white font-mono">{{ doc.totalQty || 0 }}</span>
+              <span class="text-[10px] text-slate-400">Unit ({{ doc.items?.length || 0 }} item)</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-[11px] bg-slate-50/70 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
-            <div>
-              <span class="text-slate-400 block text-[9px]">No. Dokumen:</span>
-              <span class="font-mono font-semibold text-slate-800 dark:text-slate-200">{{ doc.noDocument || '-' }}</span>
+          <!-- Baris 2: Strip Info Tanggal & Keterangan Horizontal -->
+          <div class="flex items-center justify-between text-[11px] bg-slate-50/70 dark:bg-slate-800/40 px-2 py-1 rounded-lg border border-slate-100 dark:border-slate-800 gap-2">
+            <div class="flex items-center gap-1.5 text-[10.5px] text-slate-500 dark:text-slate-400 shrink-0">
+              <span class="font-mono">{{ doc.tanggal }}</span>
             </div>
-            <div>
-              <span class="text-slate-400 block text-[9px]">Tanggal:</span>
-              <span class="font-medium text-slate-700 dark:text-slate-300">{{ doc.tanggal }}</span>
-            </div>
-            <div class="col-span-2">
-              <span class="text-slate-400 block text-[9px]">Keterangan:</span>
-              <span class="text-slate-600 dark:text-slate-400 truncate block">{{ doc.keterangan || '-' }}</span>
+            <div class="min-w-0 truncate text-[10.5px] text-slate-600 dark:text-slate-400 italic text-right">
+              {{ doc.keterangan || (doc.noDocument ? 'Doc: ' + doc.noDocument : 'Tanpa keterangan') }}
             </div>
           </div>
 
-          <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <!-- Baris 3: Aksi Kompak Horizontal -->
+          <div class="flex items-center justify-between pt-0.5 text-xs">
             <button 
               @click="openDetailModal(doc)"
-              class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 text-[11px]"
+              class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 text-[11px] hover:underline cursor-pointer"
             >
               <Eye class="w-3.5 h-3.5" />
-              <span>Buka Item</span>
+              <span>Detail Item ({{ doc.items?.length || 0 }})</span>
             </button>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               <button 
                 @click="openEditPage(doc)"
-                class="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded text-[11px] font-semibold flex items-center gap-1"
+                class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-[10.5px] font-semibold flex items-center gap-1 cursor-pointer"
                 title="Edit Dokumen"
               >
                 <Pencil class="w-3 h-3 text-emerald-600" />
@@ -147,7 +171,7 @@
               </button>
               <button 
                 @click="deleteDoc(doc)"
-                class="text-rose-500 hover:text-rose-700 p-1"
+                class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
                 title="Hapus Dokumen"
               >
                 <Trash2 class="w-3.5 h-3.5" />
@@ -166,7 +190,7 @@
       </div>
 
       <!-- Desktop Table -->
-      <div v-if="filteredTransactions.length > 0" class="hidden md:block glass-card overflow-hidden">
+      <div v-if="!isLoading && filteredTransactions.length > 0" class="hidden md:block glass-card overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
@@ -278,14 +302,14 @@
     <!-- VIEW MODE 2: FORM INPUT DOKUMEN DENGAN STICKY HEADER STACK     -->
     <!-- ============================================================== -->
     <div v-else-if="currentView === 'create'" class="space-y-3.5">
-      <!-- STICKY HEADER DOKUMEN: STACK DI ATAS SAAT SCROLL (top-10 sm:top-11) -->
-      <div class="sticky top-10 sm:top-11 z-30 glass-panel border border-slate-200/80 dark:border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-lg space-y-2.5">
+      <!-- HEADER DOKUMEN: RESPONSIVE STATIC DI MOBILE (TIDAK MEMBLOKIR ROW DATA), STICKY HANYA DI DESKTOP -->
+      <div class="static sm:sticky sm:top-11 z-20 glass-panel border border-slate-200/80 dark:border-slate-800 p-3 sm:p-3.5 rounded-2xl shadow-sm space-y-2.5">
         <!-- Top Bar: Navigation, Badges, Quick Buttons -->
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center space-x-2">
             <button 
               @click="resetToList()"
-              class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Kembali ke Daftar Transfer Order"
             >
               <ArrowLeft class="w-4 h-4" />
@@ -309,7 +333,7 @@
           <div class="flex items-center gap-2">
             <button 
               @click="focusAddItemInput"
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl text-xs font-semibold shadow transition-all"
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl text-xs font-semibold shadow transition-all cursor-pointer"
             >
               <Plus class="w-3.5 h-3.5 text-emerald-400" />
               <span>Tambah Item</span>
@@ -319,7 +343,7 @@
               @click="saveEntireDocument"
               :disabled="draftItems.length === 0"
               :class="[
-                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed',
+                'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer',
                 formHeader.type === 'IN' 
                   ? 'bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 border border-zinc-950 dark:border-white' 
                   : 'bg-rose-600 hover:bg-rose-500 text-white shadow-sm'
@@ -343,7 +367,7 @@
                 type="button" 
                 @click="changeDocType('IN')"
                 :disabled="isEditingDoc"
-                :class="['flex-1 py-1 rounded text-center transition-all', formHeader.type === 'IN' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500']"
+                :class="['flex-1 py-1 rounded text-center transition-all cursor-pointer', formHeader.type === 'IN' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500']"
               >
                 TO Masuk
               </button>
@@ -351,7 +375,7 @@
                 type="button" 
                 @click="changeDocType('OUT')"
                 :disabled="isEditingDoc"
-                :class="['flex-1 py-1 rounded text-center transition-all', formHeader.type === 'OUT' ? 'bg-white dark:bg-slate-700 text-rose-600 shadow-sm' : 'text-slate-500']"
+                :class="['flex-1 py-1 rounded text-center transition-all cursor-pointer', formHeader.type === 'OUT' ? 'bg-white dark:bg-slate-700 text-rose-600 shadow-sm' : 'text-slate-500']"
               >
                 TO Keluar
               </button>
@@ -407,47 +431,34 @@
         </div>
       </div>
 
-      <!-- SECTION: SMART AUTOFILL INPUT WITH FLOATING SUGGESTIONS (Z-30 AGAR TIDAK TERTUTUP) -->
+      <!-- SECTION: SMART AUTOFILL INPUT WITH FLOATING SUGGESTIONS (MINIMALIS & EFISIEN) -->
       <div 
         ref="addItemSectionRef" 
-        class="glass-card p-3 sm:p-3.5 space-y-2.5 border-emerald-500/30 relative z-30"
+        class="glass-card p-3 space-y-2 border border-emerald-500/30 relative z-20"
       >
-        <!-- Top Bar: Label & Deskripsi Barang Sejajar di Atas -->
-        <div class="flex flex-wrap items-center justify-between gap-1 text-xs">
-          <div class="flex items-center space-x-1.5">
+        <!-- Header Ringkas & Tombol Expand Katalog -->
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span class="font-bold text-slate-800 dark:text-slate-200">Input Item Barang:</span>
-            <!-- Deskripsi Barang Setara di Bagian Atas -->
-            <div v-if="selectedItemObject" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold border border-emerald-500/20 text-[11px]">
-              <span class="truncate max-w-[260px] sm:max-w-md">{{ selectedItemObject.deskripsi }} ({{ selectedItemObject.satuan }})</span>
-              <span class="font-bold ml-1 text-slate-500 dark:text-slate-400">• Stok: {{ selectedItemObject.currentStock }}</span>
-            </div>
-            <span v-else class="text-slate-400 text-[11px] italic">
-              (Belum ada item terpilih)
-            </span>
+            <span>Input Item Barang</span>
           </div>
 
-          <!-- Shortcut & Expand Button -->
-          <div class="flex items-center space-x-2 text-[11px]">
-            <span class="text-slate-400 hidden sm:inline">
-              Pilih item: <kbd class="px-1 py-0.2 bg-slate-100 dark:bg-slate-800 rounded border text-[10px] font-mono">↓</kbd> lalu <kbd class="px-1 py-0.2 bg-slate-100 dark:bg-slate-800 rounded border text-[10px] font-mono">Enter</kbd>
-            </span>
-            <button 
-              type="button"
-              @click="isAdvancedPickerOpen = true"
-              class="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
-            >
-              <Maximize2 class="w-3 h-3" />
-              <span>Expand Katalog</span>
-            </button>
-          </div>
+          <button 
+            type="button" 
+            @click="isAdvancedPickerOpen = true"
+            class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <Search class="w-3 h-3" />
+            <span>Katalog Master &rarr;</span>
+          </button>
         </div>
 
-        <!-- Input Row (Single Clean Horizontal Flow) -->
-        <form @submit.prevent="addItemToDraft" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-          <!-- Input Kolom Barang (Dengan Floating Dropdown List di Bawahnya) -->
-          <div :class="formHeader.type === 'IN' ? 'sm:col-span-5 relative' : 'sm:col-span-6 relative'">
+        <!-- Form Input: Minimalis & Efisien -->
+        <form @submit.prevent="addItemToDraft" class="space-y-2">
+          <!-- Baris 1: Smart Search Input & Dropdown -->
+          <div class="relative">
             <div class="relative flex items-center">
+              <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" />
               <input 
                 ref="smartInputRef"
                 v-model="typedInputText" 
@@ -457,110 +468,122 @@
                 @keydown.down.prevent="navigateSuggestions(1)"
                 @keydown.up.prevent="navigateSuggestions(-1)"
                 @keydown.enter.prevent="handleEnterKeyOnSmartInput"
-                placeholder="Ketik kode (misal 'BRG') atau nama..."
+                placeholder="Ketik kode SKU atau nama barang..."
                 :class="[
-                  'w-full pl-2.5 pr-8 py-1.5 rounded-lg text-xs font-mono transition-all',
+                  'w-full pl-8 pr-8 py-1.5 rounded-lg text-xs font-mono transition-all',
                   isItemUnregistered
-                    ? 'border-2 border-rose-500 bg-rose-50/40 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 focus:ring-rose-500/20'
+                    ? 'border-2 border-rose-500 bg-rose-50/40 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200'
                     : 'glass-input'
                 ]"
               />
-
               <button 
+                v-if="typedInputText"
                 type="button" 
-                @click="isAdvancedPickerOpen = true"
-                class="absolute right-2 text-slate-400 hover:text-emerald-600"
-                title="Buka Pencarian Canggih"
+                @click="typedInputText = ''; selectedItemObject = null; isDropdownOpen = false"
+                class="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
-                <Search class="w-3.5 h-3.5" />
+                <X class="w-3.5 h-3.5" />
               </button>
             </div>
 
             <!-- Warning jika tidak terdaftar -->
-            <div v-if="isItemUnregistered" class="absolute left-0 -bottom-4 flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap z-20">
-              <AlertCircle class="w-3 h-3" />
-              <span>Item "{{ typedInputText }}" tidak terdaftar di Master Item!</span>
+            <div v-if="isItemUnregistered" class="text-[10px] font-bold text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1">
+              <AlertCircle class="w-3 h-3 shrink-0" />
+              <span>SKU "{{ typedInputText }}" belum ada di katalog Master Item!</span>
             </div>
 
-            <!-- FLOATING SUGGESTION DROPDOWN LIST (Z-50 & FLOATING DI ATAS TABEL) -->
+            <!-- FLOATING SUGGESTION DROPDOWN (Z-50) -->
             <div 
               v-if="isDropdownOpen && matchingSuggestions.length > 0"
-              class="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl max-h-60 overflow-y-auto py-1"
+              class="absolute left-0 right-0 top-full mt-1 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xl max-h-56 overflow-y-auto py-1 divide-y divide-slate-100 dark:divide-slate-800"
             >
               <div 
                 v-for="(candidate, idx) in matchingSuggestions"
                 :key="candidate.uniqCode"
                 @mousedown.prevent="selectCandidate(candidate)"
                 :class="[
-                  'px-3 py-2 text-xs flex items-center justify-between cursor-pointer transition-colors border-b border-slate-100/60 dark:border-slate-800/60 last:border-b-0',
+                  'px-3 py-2 text-xs flex items-center justify-between cursor-pointer transition-colors',
                   highlightedIndex === idx 
                     ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-bold' 
                     : 'hover:bg-slate-100 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300'
                 ]"
               >
                 <div class="flex items-center gap-2 truncate">
-                  <span class="font-mono text-[11px] font-bold bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-200">
+                  <span class="font-mono text-[11px] font-bold bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-200 shrink-0">
                     {{ candidate.uniqCode }}
                   </span>
                   <span class="truncate font-medium">{{ candidate.deskripsi }}</span>
                 </div>
-                <span class="text-[10px] text-slate-400 shrink-0 ml-2 font-semibold">
+                <span class="text-[10px] text-slate-400 shrink-0 ml-2 font-mono">
                   Stok: {{ candidate.currentStock }} {{ candidate.satuan }}
                 </span>
               </div>
             </div>
           </div>
 
-          <!-- Qty Input (Tab naturally moves here) -->
-          <div class="sm:col-span-2">
-            <input 
-              ref="qtyInputRef"
-              v-model.number="itemQty" 
-              type="number"
-              inputmode="numeric"
-              min="1"
-              required
-              placeholder="Qty"
-              class="w-full px-2.5 py-1.5 glass-input rounded-lg text-xs font-bold text-center text-slate-900 dark:text-white"
-            />
+          <!-- Chip Item Terpilih (Sleek Inline Badge) -->
+          <div v-if="selectedItemObject" class="flex items-center justify-between bg-emerald-50/80 dark:bg-emerald-950/40 px-2.5 py-1.5 rounded-lg text-xs border border-emerald-200 dark:border-emerald-800/60">
+            <div class="flex items-center gap-2 truncate min-w-0">
+              <span class="font-mono font-bold text-emerald-800 dark:text-emerald-300">{{ selectedItemObject.uniqCode }}</span>
+              <span class="truncate font-medium text-slate-800 dark:text-slate-200">{{ selectedItemObject.deskripsi }}</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 font-mono text-[11px]">
+              <span class="text-slate-500 dark:text-slate-400">Stok: <strong class="text-slate-800 dark:text-slate-200">{{ selectedItemObject.currentStock }}</strong> {{ selectedItemObject.satuan }}</span>
+            </div>
           </div>
 
-          <!-- Pilihan Lokasi Rak (TO Masuk: Rak Masuk, TO Keluar: Rak Asal Pengambilan) -->
-          <div class="sm:col-span-2">
-            <select 
-              v-model="itemLocation"
-              class="w-full px-2 py-1.5 glass-input rounded-lg text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
-              :title="formHeader.type === 'IN' ? 'Pilih lokasi rak masuk untuk item ini (Default: Staging Area)' : 'Pilih rak asal pengambilan (Default: AUTO Picking)'"
-            >
-              <option v-if="formHeader.type === 'OUT'" value="">AUTO (Picking)</option>
-              <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
-                {{ loc.code }}
-              </option>
-            </select>
-          </div>
+          <!-- Baris 2: Parameter Input Padat (Qty, Lokasi Rak, Catatan, Tombol Tambah) -->
+          <div class="grid grid-cols-12 gap-1.5 items-center text-xs">
+            <!-- Qty -->
+            <div class="col-span-4 sm:col-span-2">
+              <input 
+                ref="qtyInputRef"
+                v-model.number="itemQty" 
+                type="number"
+                inputmode="numeric"
+                min="1"
+                required
+                placeholder="Qty"
+                class="w-full px-2 py-1.5 glass-input rounded-lg text-xs font-bold text-center text-slate-900 dark:text-white"
+              />
+            </div>
 
-          <!-- Keterangan Item (Tab naturally moves here) -->
-          <div class="sm:col-span-2">
-            <input 
-              ref="noteInputRef"
-              v-model="itemNote" 
-              placeholder="Catatan baris..."
-              class="w-full px-2.5 py-1.5 glass-input rounded-lg text-xs"
-            />
-          </div>
+            <!-- Lokasi Rak -->
+            <div class="col-span-8 sm:col-span-3">
+              <select 
+                v-model="itemLocation"
+                class="w-full px-2 py-1.5 glass-input rounded-lg text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
+                :title="formHeader.type === 'IN' ? 'Pilih rak masuk' : 'Pilih rak pengambilan'"
+              >
+                <option v-if="formHeader.type === 'OUT'" value="">AUTO (Picking)</option>
+                <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
+                  {{ loc.code }}
+                </option>
+              </select>
+            </div>
 
-          <!-- Tombol Tambah Bersih & Estetik (Single Icon, Tidak Double) -->
-          <div class="sm:col-span-1 flex justify-end">
-            <button 
-              ref="addButtonRef"
-              type="submit"
-              :disabled="!selectedItemObject"
-              class="w-full py-1.5 px-3 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed text-white dark:text-zinc-950 rounded-lg text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all flex items-center justify-center gap-1.5"
-              title="Tambahkan ke Dokumen"
-            >
-              <Plus class="w-3.5 h-3.5" />
-              <span>Tambah</span>
-            </button>
+            <!-- Catatan -->
+            <div class="col-span-8 sm:col-span-5">
+              <input 
+                ref="noteInputRef"
+                v-model="itemNote" 
+                placeholder="Catatan baris (opsional)..."
+                class="w-full px-2.5 py-1.5 glass-input rounded-lg text-xs"
+              />
+            </div>
+
+            <!-- Tombol Tambah -->
+            <div class="col-span-4 sm:col-span-2">
+              <button 
+                ref="addButtonRef"
+                type="submit"
+                :disabled="!selectedItemObject"
+                class="w-full py-1.5 px-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed text-white dark:text-zinc-950 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer shadow-sm"
+              >
+                <Plus class="w-3.5 h-3.5" />
+                <span>+ Item</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -576,21 +599,26 @@
             <p class="text-[10px] text-slate-400">Total Akumulasi: <strong class="text-emerald-600 dark:text-emerald-400">{{ totalDraftQty }} Unit</strong></p>
           </div>
 
-          <!-- Search dalam draft items -->
-          <div class="relative w-44 sm:w-56">
-            <Search class="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input 
-              v-model="draftSearch" 
-              type="text" 
-              placeholder="Cari item dalam tabel..." 
-              class="w-full pl-7 pr-2.5 py-1 glass-input rounded-lg text-xs"
-            />
+          <!-- Search dalam draft items & Hint Geser Mobile -->
+          <div class="flex items-center gap-2">
+            <span class="text-[10.5px] text-slate-400 sm:hidden font-mono flex items-center gap-1">
+              &larr; Geser tabel &rarr;
+            </span>
+            <div class="relative w-44 sm:w-56">
+              <Search class="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input 
+                v-model="draftSearch" 
+                type="text" 
+                placeholder="Cari item dalam tabel..." 
+                class="w-full pl-7 pr-2.5 py-1 glass-input rounded-lg text-xs"
+              />
+            </div>
           </div>
         </div>
 
-        <!-- Tabel Minimalis Profesional -->
-        <div class="border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
+        <!-- Tabel Minimalis Profesional dengan Touch Horizontal Slide -->
+        <div class="border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-x-auto touch-pan-x">
+          <table class="min-w-[760px] w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
                 <th class="py-2 px-3 text-center w-12">No Item</th>
@@ -752,8 +780,8 @@
           </div>
         </div>
 
-        <div class="overflow-y-auto flex-1 p-3.5 sm:p-4 bg-white dark:bg-slate-900">
-          <table class="w-full text-left border-collapse text-xs">
+        <div class="overflow-y-auto overflow-x-auto flex-1 p-3.5 sm:p-4 bg-white dark:bg-slate-900 touch-pan-x">
+          <table class="min-w-[560px] w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">
                 <th class="py-2.5 px-3">Kode Unik</th>
@@ -862,9 +890,12 @@
           </div>
 
           <div>
-            <h4 class="font-bold text-[11px] uppercase tracking-wider text-slate-500 mb-2">Daftar Item Barang ({{ selectedDetailDoc.items?.length || 0 }} Item):</h4>
-            <div class="border border-slate-200/80 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
-              <table class="w-full text-left border-collapse text-xs">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-bold text-[11px] uppercase tracking-wider text-slate-500">Daftar Item Barang ({{ selectedDetailDoc.items?.length || 0 }} Item):</h4>
+              <span class="text-[10px] text-slate-400 sm:hidden font-mono">&larr; Geser tabel &rarr;</span>
+            </div>
+            <div class="border border-slate-200/80 dark:border-slate-800 rounded-xl overflow-x-auto touch-pan-x shadow-xs">
+              <table class="min-w-[580px] w-full text-left border-collapse text-xs">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-800 text-[9px] font-bold text-slate-600 dark:text-slate-300 uppercase">
                     <th class="py-2.5 px-3">No</th>
@@ -908,6 +939,190 @@
         </div>
       </div>
     </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL EKSPOR EXCEL TRANSFER ORDER (MINIMALIS & ELEGAN)         -->
+    <!-- ============================================================== -->
+    <div 
+      v-if="isExportModalOpen" 
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4"
+    >
+      <div class="bg-white dark:bg-zinc-950 w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col">
+        <!-- Modal Header Minimalis -->
+        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-bold">
+              <Download class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white">Ekspor Transfer Order (.xlsx)</h3>
+              <p class="text-[11px] text-zinc-400">Unduh data mutasi dengan filter spesifik sesuai kebutuhan.</p>
+            </div>
+          </div>
+          <button 
+            @click="isExportModalOpen = false" 
+            class="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Modal Body Form -->
+        <div class="p-5 sm:p-6 space-y-4 text-xs overflow-y-auto max-h-[75vh]">
+          <!-- Filter 1: Jenis Mutasi -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              1. Jenis Transaksi
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button 
+                type="button"
+                @click="exportTypeFilter = 'ALL'"
+                :class="[
+                  'py-2 rounded-xl font-bold transition-all border text-center cursor-pointer',
+                  exportTypeFilter === 'ALL'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400'
+                ]"
+              >
+                Semua (IN & OUT)
+              </button>
+              <button 
+                type="button"
+                @click="exportTypeFilter = 'IN'"
+                :class="[
+                  'py-2 rounded-xl font-bold transition-all border text-center cursor-pointer',
+                  exportTypeFilter === 'IN'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400'
+                ]"
+              >
+                Masuk (IN)
+              </button>
+              <button 
+                type="button"
+                @click="exportTypeFilter = 'OUT'"
+                :class="[
+                  'py-2 rounded-xl font-bold transition-all border text-center cursor-pointer',
+                  exportTypeFilter === 'OUT'
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400'
+                ]"
+              >
+                Keluar (OUT)
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter 2: Rentang Waktu -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              2. Rentang Waktu Transaksi
+            </label>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+              <button 
+                v-for="preset in [
+                  { id: 'ALL', label: 'Semua' },
+                  { id: 'TODAY', label: 'Hari Ini' },
+                  { id: '7D', label: '7 Hari' },
+                  { id: '30D', label: '30 Hari' },
+                  { id: 'MTD', label: 'Bulan Ini' },
+                  { id: 'CUSTOM', label: 'Kustom' }
+                ]"
+                :key="preset.id"
+                type="button"
+                @click="exportDatePreset = preset.id"
+                :class="[
+                  'py-1.5 px-2 rounded-lg text-center font-semibold transition-all border cursor-pointer',
+                  exportDatePreset === preset.id
+                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs font-bold'
+                    : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400'
+                ]"
+              >
+                {{ preset.label }}
+              </button>
+            </div>
+
+            <!-- Custom Date Pickers -->
+            <div v-if="exportDatePreset === 'CUSTOM'" class="grid grid-cols-2 gap-2 pt-2">
+              <div>
+                <label class="block text-[10px] text-zinc-400 mb-1 font-mono">Mulai Tanggal:</label>
+                <input 
+                  v-model="exportStartDate" 
+                  type="date" 
+                  class="w-full px-2.5 py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white text-xs font-mono"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] text-zinc-400 mb-1 font-mono">Sampai Tanggal:</label>
+                <input 
+                  v-model="exportEndDate" 
+                  type="date" 
+                  class="w-full px-2.5 py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white text-xs font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Opsi Tambahan -->
+          <div class="space-y-1.5 pt-1">
+            <label class="block text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+              3. Opsi Lembar Kerja (Sheets)
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 cursor-pointer">
+              <input 
+                v-model="exportIncludeDetails" 
+                type="checkbox" 
+                class="mt-0.5 rounded text-zinc-950 focus:ring-0 dark:bg-zinc-800"
+              />
+              <div>
+                <strong class="text-xs font-bold text-zinc-900 dark:text-zinc-100 block">Sertakan Sheet Rincian Per-Item (Direkomendasikan)</strong>
+                <span class="text-[11px] text-zinc-400 block mt-0.5">
+                  Menambahkan lembar ke-2 berisi setiap baris SKU barang, jumlah unit, dan lokasi rak.
+                </span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Live Preview Summary Card -->
+          <div class="p-3.5 rounded-2xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] uppercase font-mono text-zinc-400 block">Pratinjau Hasil Filter</span>
+              <div class="text-xs font-bold text-zinc-900 dark:text-white mt-0.5">
+                <span>{{ exportTransactionsList.length }} Dokumen</span>
+                <span class="text-zinc-400 font-normal mx-1.5">•</span>
+                <span>{{ exportTotalQty }} Unit</span>
+                <span v-if="exportIncludeDetails" class="text-zinc-400 font-normal mx-1.5">•</span>
+                <span v-if="exportIncludeDetails">{{ exportTotalItemsCount }} Baris Barang</span>
+              </div>
+            </div>
+            <div class="w-8 h-8 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <FileSpreadsheet class="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="px-5 sm:px-6 py-3.5 bg-zinc-50 dark:bg-zinc-900/60 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end gap-2">
+          <button 
+            type="button"
+            @click="isExportModalOpen = false"
+            class="px-3.5 py-2 text-xs font-semibold bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer"
+          >
+            Batal
+          </button>
+          <button 
+            type="button"
+            @click="downloadTransactionsExcel"
+            :disabled="isExporting || exportTransactionsList.length === 0"
+            class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-xs border border-zinc-950 dark:border-white transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Download class="w-4 h-4" />
+            <span>{{ isExporting ? 'Membuat File...' : 'Unduh Excel (.xlsx)' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -915,6 +1130,9 @@
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { db, generateAutoTrxCode, applyTransactionStockToLocations } from '../database/db';
 import Pagination from '../components/Pagination.vue';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
+import * as XLSX from 'xlsx';
+import { createStyledSheet } from '../utils/excelFormatter';
 import { 
   ArrowDownLeft, 
   ArrowUpRight, 
@@ -932,7 +1150,9 @@ import {
   Pencil,
   ArrowUp,
   ArrowDown,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Download,
+  FileSpreadsheet
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -943,6 +1163,10 @@ const props = defineProps({
   transactions: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -962,6 +1186,122 @@ const sortKey = ref('tanggal');
 const sortOrder = ref('desc');
 const currentPage = ref(1);
 const pageSize = ref(10);
+
+// Contextual Export Modal State
+const isExportModalOpen = ref(false);
+const exportTypeFilter = ref('ALL'); // 'ALL' | 'IN' | 'OUT'
+const exportDatePreset = ref('ALL'); // 'ALL' | 'TODAY' | '7D' | '30D' | 'MTD' | 'CUSTOM'
+const exportStartDate = ref('');
+const exportEndDate = ref('');
+const exportIncludeDetails = ref(true);
+const isExporting = ref(false);
+
+// Filtered Transactions for Export
+const exportTransactionsList = computed(() => {
+  let list = [...props.transactions];
+  if (exportTypeFilter.value !== 'ALL') {
+    list = list.filter(t => t.type === exportTypeFilter.value);
+  }
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  if (exportDatePreset.value === 'TODAY') {
+    list = list.filter(t => t.tanggal === todayStr);
+  } else if (exportDatePreset.value === '7D') {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    const startStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    list = list.filter(t => t.tanggal >= startStr && t.tanggal <= todayStr);
+  } else if (exportDatePreset.value === '30D') {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    const startStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    list = list.filter(t => t.tanggal >= startStr && t.tanggal <= todayStr);
+  } else if (exportDatePreset.value === 'MTD') {
+    const startStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
+    list = list.filter(t => t.tanggal >= startStr && t.tanggal <= todayStr);
+  } else if (exportDatePreset.value === 'CUSTOM') {
+    if (exportStartDate.value) {
+      list = list.filter(t => t.tanggal >= exportStartDate.value);
+    }
+    if (exportEndDate.value) {
+      list = list.filter(t => t.tanggal <= exportEndDate.value);
+    }
+  }
+  return list.sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''));
+});
+
+const exportTotalQty = computed(() => {
+  return exportTransactionsList.value.reduce((acc, curr) => acc + (Number(curr.totalQty) || 0), 0);
+});
+
+const exportTotalItemsCount = computed(() => {
+  return exportTransactionsList.value.reduce((acc, curr) => acc + (curr.items?.length || 0), 0);
+});
+
+function downloadTransactionsExcel() {
+  if (exportTransactionsList.value.length === 0) {
+    alert('Tidak ada dokumen transaksi yang cocok dengan kriteria filter.');
+    return;
+  }
+  isExporting.value = true;
+  try {
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Dokumen Transfer Order
+    const docRows = exportTransactionsList.value.map(doc => ({
+      'Kode Transfer Order': doc.trxCode,
+      'Tipe Mutasi': doc.type === 'IN' ? '📥 MASUK (IN)' : '📤 KELUAR (OUT)',
+      'Tanggal Transaksi': doc.tanggal,
+      'No Dokumen Referensi': doc.noDocument || '-',
+      'Total Kuantitas (Unit)': Number(doc.totalQty) || 0,
+      'Jumlah Baris Item': doc.items ? doc.items.length : 0,
+      'Default Area Rak': doc.defaultLocation || 'ZONE-STAGING',
+      'Keterangan Dokumen': doc.keterangan || '-',
+      'Waktu Rekam Sistem': doc.createdAt ? new Date(doc.createdAt).toLocaleString('id-ID') : '-'
+    }));
+    XLSX.utils.book_append_sheet(wb, createStyledSheet(docRows), 'Dokumen_Transfer_Order');
+
+    // Sheet 2: Rincian Baris Barang (opsional)
+    if (exportIncludeDetails.value) {
+      const itemRows = [];
+      exportTransactionsList.value.forEach(doc => {
+        if (doc.items && Array.isArray(doc.items)) {
+          doc.items.forEach((it, idx) => {
+            itemRows.push({
+              'Kode TO Induk': doc.trxCode,
+              'Tipe Mutasi': doc.type === 'IN' ? '📥 MASUK (IN)' : '📤 KELUAR (OUT)',
+              'Tanggal Transaksi': doc.tanggal,
+              'No Dokumen Ref': doc.noDocument || '-',
+              'No Urut': idx + 1,
+              'Kode Item (SKU)': it.uniqCode,
+              'Deskripsi Barang': it.deskripsi || '-',
+              'Kuantitas': Number(it.qty) || 0,
+              'Satuan': it.satuan || 'PCS',
+              'Alokasi Lokasi Rak': it.locationCode || doc.defaultLocation || 'ZONE-STAGING',
+              'Keterangan Item': it.keterangan || '-'
+            });
+          });
+        }
+      });
+      XLSX.utils.book_append_sheet(wb, createStyledSheet(itemRows), 'Rincian_Baris_Barang');
+    }
+
+    const dateTag = new Date().toISOString().split('T')[0];
+    const typeTag = exportTypeFilter.value;
+    const presetTag = exportDatePreset.value;
+    const fileName = `IMS_Transfer_Order_${typeTag}_${presetTag}_${dateTag}.xlsx`;
+
+    XLSX.writeFile(wb, fileName);
+    isExportModalOpen.value = false;
+  } catch (err) {
+    console.error('Gagal mengekspor transaksi:', err);
+    alert('Terjadi kesalahan saat memproses file Excel: ' + err.message);
+  } finally {
+    isExporting.value = false;
+  }
+}
 
 // Lokasi Gudang State (Default Masuk ke Staging Area)
 const availableLocations = ref([]);

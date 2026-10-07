@@ -19,12 +19,21 @@
         </p>
       </div>
 
-      <!-- Action Button: Open Movement Worksheet -->
+      <!-- Action Button: Open Movement Worksheet & Ekspor -->
       <div class="flex items-center gap-2">
         <button 
           v-if="activeSubTab !== 'worksheet'"
+          @click="downloadLocationDataExcel"
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-bold border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all cursor-pointer"
+          title="Ekspor data okupansi rak & pergerakan internal ke Excel (.xlsx)"
+        >
+          <Download class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>Ekspor Lokasi</span>
+        </button>
+        <button 
+          v-if="activeSubTab !== 'worksheet'"
           @click="openNewWorksheet"
-          class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all"
+          class="flex items-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-sm border border-zinc-950 dark:border-white transition-all cursor-pointer"
         >
           <ArrowLeftRight class="w-4 h-4" />
           <span>+ Movement Worksheet</span>
@@ -87,8 +96,9 @@
     <!-- SHEET 1: DASHBOARD OKUPANSI & KAPASITAS LOKASI                 -->
     <!-- ============================================================== -->
     <div v-if="activeSubTab === 'dashboard'" class="space-y-5">
-      <!-- 4 Top KPI Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <!-- 4 Top KPI Cards (Dengan Skeleton Shimmer) -->
+      <SkeletonLoader v-if="isLoading" type="kpi" :count="4" />
+      <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <!-- 1. Total Kapasitas Gudang -->
         <div class="glass-card p-3.5 sm:p-4 border-l-4 border-l-blue-500">
           <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 block">Total Kapasitas Fisik</span>
@@ -385,8 +395,112 @@
         </button>
       </div>
 
-      <!-- Tabel Kelola Lokasi -->
-      <div class="glass-card overflow-hidden border border-slate-200/80 dark:border-slate-800">
+      <!-- Skeleton Shimmer Loading State -->
+      <div v-if="isLoading" class="space-y-4">
+        <div class="md:hidden">
+          <SkeletonLoader type="card-list" :count="3" />
+        </div>
+        <div class="hidden md:block">
+          <SkeletonLoader type="table" :count="5" />
+        </div>
+      </div>
+
+      <!-- Mobile View: Kartu Lokasi Responsif (md:hidden) -->
+      <div v-else class="md:hidden space-y-3">
+        <div v-if="filteredLocations.length === 0" class="glass-card p-6 text-center text-slate-400 text-xs">
+          Tidak ada area/lokasi yang sesuai pencarian.
+        </div>
+
+        <div 
+          v-for="loc in filteredLocations" 
+          :key="loc.code"
+          class="glass-card p-2.5 space-y-1.5 transition-all border-l-2"
+          :class="[
+            loc.occupancyPercent >= 90 ? 'border-l-rose-500' :
+            loc.occupancyPercent >= 75 ? 'border-l-amber-500' : 'border-l-emerald-500'
+          ]"
+        >
+          <!-- Baris 1: Kode & Nama Area + Status Badge -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="font-mono font-bold text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 shrink-0">
+                {{ loc.code }}
+              </span>
+              <h3 class="text-xs font-bold text-zinc-900 dark:text-white truncate">{{ loc.name }}</h3>
+              <span class="text-[9.5px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-full shrink-0 hidden xs:inline">
+                {{ loc.type }}
+              </span>
+            </div>
+
+            <span :class="['text-[9.5px] font-bold px-2 py-0.5 rounded-full border shrink-0', loc.statusColor]">
+              {{ loc.statusLabel }}
+            </span>
+          </div>
+
+          <!-- Baris 2: Strip Okupansi & Kapasitas Horizontal -->
+          <div class="flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-800 gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-zinc-400 text-[10px]">Terisi:</span>
+              <strong class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ loc.currentQty }}</strong>
+              <span class="text-zinc-400 text-[10px]">/ {{ loc.maxCapacity }} u</span>
+              <!-- Mini visual bar -->
+              <div class="w-10 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden shrink-0 ml-1">
+                <div 
+                  :class="[
+                    'h-full rounded-full',
+                    loc.occupancyPercent >= 90 ? 'bg-rose-500' :
+                    loc.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                  ]"
+                  :style="{ width: `${loc.occupancyPercent}%` }"
+                ></div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 text-[10.5px]">
+              <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ loc.occupancyPercent }}%</span>
+              <span class="text-zinc-300 dark:text-zinc-700">•</span>
+              <span class="text-zinc-400">Sisa: <strong class="text-zinc-700 dark:text-zinc-300 font-mono">{{ loc.availableCapacity }}</strong></span>
+            </div>
+          </div>
+
+          <!-- Baris 3: Item preview / Aksi Cepat -->
+          <div class="flex items-center justify-between pt-0.5">
+            <div class="text-[10px] text-zinc-400 truncate max-w-[140px]">
+              <span v-if="loc.items.length > 0">{{ loc.items.length }} SKU tersimpan</span>
+              <span v-else class="italic">Kosong</span>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button 
+                @click="openLocationDetailModal(loc)"
+                title="Lihat Item di Lokasi Ini"
+                class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <Eye class="w-3 h-3" />
+                <span>Detail</span>
+              </button>
+              <button 
+                @click="openEditLocationModal(loc)"
+                title="Edit Lokasi & Kapasitas"
+                class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <Pencil class="w-3 h-3" />
+                <span>Edit</span>
+              </button>
+              <button 
+                @click="deleteLocation(loc)"
+                title="Hapus Lokasi"
+                class="p-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop View: Tabel Kelola Lokasi (hidden md:block) -->
+      <div v-if="!isLoading" class="hidden md:block glass-card overflow-hidden border border-slate-200/80 dark:border-slate-800">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -973,8 +1087,8 @@
           </span>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
+        <div class="overflow-x-auto touch-pan-x">
+          <table class="min-w-[660px] w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
                 <th class="py-2.5 px-3 text-center w-12">No</th>
@@ -1271,29 +1385,31 @@
         <div class="p-5 overflow-y-auto space-y-3 text-xs">
           <p class="text-slate-500">Catatan: {{ selectedMovementDetail.keterangan || '-' }}</p>
 
-          <table class="w-full text-left border-collapse border rounded-xl overflow-hidden">
-            <thead>
-              <tr class="bg-slate-100 dark:bg-slate-800 border-b text-[10px] uppercase font-bold text-slate-500">
-                <th class="py-2 px-3">No</th>
-                <th class="py-2 px-3">Barang</th>
-                <th class="py-2 px-3">Dari (From)</th>
-                <th class="py-2 px-3">Ke (To)</th>
-                <th class="py-2 px-3 text-right">Qty</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-              <tr v-for="(it, idx) in selectedMovementDetail.items" :key="idx">
-                <td class="py-2 px-3 text-slate-400">{{ idx + 1 }}</td>
-                <td class="py-2 px-3">
-                  <span class="font-mono font-bold mr-1">{{ it.uniqCode }}</span>
-                  <span>{{ it.deskripsi }}</span>
-                </td>
-                <td class="py-2 px-3 font-mono font-bold text-amber-600">{{ it.fromLocation }}</td>
-                <td class="py-2 px-3 font-mono font-bold text-emerald-600">{{ it.toLocation }}</td>
-                <td class="py-2 px-3 text-right font-mono font-bold">{{ it.qty }} {{ it.satuan }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="border border-slate-200/80 dark:border-slate-800 rounded-xl overflow-x-auto touch-pan-x shadow-xs">
+            <table class="min-w-[540px] w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 dark:bg-slate-800 border-b text-[10px] uppercase font-bold text-slate-500">
+                  <th class="py-2 px-3">No</th>
+                  <th class="py-2 px-3">Barang</th>
+                  <th class="py-2 px-3">Dari (From)</th>
+                  <th class="py-2 px-3">Ke (To)</th>
+                  <th class="py-2 px-3 text-right">Qty</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr v-for="(it, idx) in selectedMovementDetail.items" :key="idx">
+                  <td class="py-2 px-3 text-slate-400">{{ idx + 1 }}</td>
+                  <td class="py-2 px-3">
+                    <span class="font-mono font-bold mr-1">{{ it.uniqCode }}</span>
+                    <span>{{ it.deskripsi }}</span>
+                  </td>
+                  <td class="py-2 px-3 font-mono font-bold text-amber-600">{{ it.fromLocation }}</td>
+                  <td class="py-2 px-3 font-mono font-bold text-emerald-600">{{ it.toLocation }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-bold">{{ it.qty }} {{ it.satuan }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -1346,13 +1462,21 @@ import {
   History, 
   AlertTriangle, 
   CheckCircle2, 
-  X 
+  X,
+  Download
 } from 'lucide-vue-next';
+import * as XLSX from 'xlsx';
+import SkeletonLoader from '../components/SkeletonLoader.vue';
+import { createStyledSheet } from '../utils/excelFormatter';
 
 const props = defineProps({
   itemsWithStock: {
     type: Array,
     default: () => []
+  },
+  isLoading: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -1870,6 +1994,59 @@ async function deleteLocation(loc) {
   if (confirm(`Hapus area/lokasi "${loc.code} - ${loc.name}"?`)) {
     await db.locations.delete(loc.id);
     await loadData();
+  }
+}
+
+function downloadLocationDataExcel() {
+  if (locationsList.value.length === 0) {
+    alert('Tidak ada data lokasi untuk diekspor.');
+    return;
+  }
+  try {
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Okupansi dan Kapasitas Rak
+    const locRows = locationsList.value.map((loc, idx) => {
+      const pct = loc.maxCapacity > 0 ? Math.round((loc.currentQty / loc.maxCapacity) * 100) : 0;
+      let status = '🟢 Tersedia';
+      if (pct >= 100) status = '🔴 Penuh (100%)';
+      else if (pct >= 80) status = '🟡 Hampir Penuh';
+      else if (pct === 0) status = '⚪ Kosong';
+
+      return {
+        'No': idx + 1,
+        'Kode Lokasi / Rak': loc.code,
+        'Nama Area': loc.name,
+        'Tipe Penyimpanan': loc.type || 'Standard Storage',
+        'Kapasitas Maksimal (Unit)': Number(loc.maxCapacity) || 0,
+        'Kuantitas Terisi Saat Ini': Number(loc.currentQty) || 0,
+        'Persentase Okupansi': `${pct}%`,
+        'Status Okupansi': status,
+        'Keterangan': loc.keterangan || '-'
+      };
+    });
+    XLSX.utils.book_append_sheet(wb, createStyledSheet(locRows), 'Okupansi_dan_Kapasitas_Rak');
+
+    // Sheet 2: Movement Internal (jika ada)
+    if (movementsList.value.length > 0) {
+      const movRows = movementsList.value.map(m => ({
+        'No Dokumen Movement': m.docNo,
+        'Tanggal Mutasi': m.tanggal,
+        'Operator Gudang': m.operator || '-',
+        'Status Dokumen': m.status === 'APPROVED' ? '✅ Disetujui' : '📝 Draf',
+        'Jumlah Baris SKU': m.items ? m.items.length : 0,
+        'Total Kuantitas Dipindahkan': Number(m.totalQty) || 0,
+        'Keterangan': m.keterangan || '-',
+        'Waktu Rekam': m.createdAt ? new Date(m.createdAt).toLocaleString('id-ID') : '-'
+      }));
+      XLSX.utils.book_append_sheet(wb, createStyledSheet(movRows), 'Histori_Movement_Internal');
+    }
+
+    const dateTag = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `IMS_Lokasi_dan_Movement_${dateTag}.xlsx`);
+  } catch (err) {
+    console.error('Gagal mengekspor data lokasi:', err);
+    alert('Gagal mengekspor data: ' + err.message);
   }
 }
 

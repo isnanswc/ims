@@ -228,3 +228,88 @@ button:active, a:active {
   transform: scale(0.985);
   transition: transform 0.05s ease-in-out;
 }
+
+/* ========================================================== */
+/* MOBILE VIEWPORT & TOUCH SCREEN SAFE AREA UTILITIES        */
+/* ========================================================== */
+.safe-area-pb {
+  padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0px));
+}
+
+.safe-area-pt {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+/* Touch Ergonomics & Smooth Interactions */
+.touch-target {
+  min-height: 40px;
+  min-width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ========================================================== */
+/* SKELETON SHIMMER LOADING ANIMATION (Hardware-Accelerated)   */
+/* ========================================================== */
+@keyframes skeleton-shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: #f4f4f5; /* zinc-100 */
+}
+
+html.dark .skeleton-shimmer {
+  background-color: #18181b; /* zinc-900 */
+}
+
+.skeleton-shimmer::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.65) 25%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.65) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: skeleton-shimmer-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  content: '';
+  will-change: transform;
+}
+
+html.dark .skeleton-shimmer::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Smooth Touch Momentum Scrolling for Mobile Tables */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+
