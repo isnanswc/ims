@@ -136,6 +136,125 @@ export function exportStyledWorkbook(sheetsConfig, fileName) {
 }
 
 /**
+ * 1. EKSPOR DOKUMEN TRANSFER ORDER RESMI (.xlsx MODERN)
+ * Menghasilkan file Office OpenXML Spreadsheet (.xlsx) modern tanpa peringatan format lama.
+ * - Sheet 1: "Rincian Barang" (Tabel Data Bersih siap olah / Ctrl+T, autofilter, freeze panes, auto-fit width)
+ * - Sheet 2: "Info Dokumen" (Metadata Lengkap Dokumen dan Totalitas)
+ * @param {object} doc - Objek dokumen Transfer Order
+ */
+export function exportTransferOrderExcel(doc) {
+  if (!doc) return;
+
+  const items = doc.items || [];
+  const isTypeIn = doc.type === 'IN';
+  const typeText = isTypeIn ? 'MASUK (IN)' : 'KELUAR (OUT)';
+  const totalQty = items.reduce((sum, it) => sum + (Number(it.qty) || 0), 0);
+
+  // 1. DATA TABEL BARANG (Sheet 1)
+  const tableData = items.map((it, idx) => ({
+    'No': idx + 1,
+    'Kode SKU': it.uniqCode || '',
+    'Deskripsi Barang': it.deskripsi || '',
+    'Satuan': it.satuan || 'UNIT',
+    'Area / Rak': it.locationCode || doc.defaultLocation || 'ZONE-STAGING',
+    'Kuantitas': Number(it.qty) || 0,
+    'Catatan Baris': it.keterangan || ''
+  }));
+
+  const wb = XLSX.utils.book_new();
+
+  // Buat Sheet Tabel Barang dengan Format Tabel & Auto-Width Kolom
+  const wsItems = createStyledSheet(tableData.length > 0 ? tableData : [{
+    'No': 1,
+    'Kode SKU': '-',
+    'Deskripsi Barang': 'Tidak ada rincian item',
+    'Satuan': '-',
+    'Area / Rak': '-',
+    'Kuantitas': 0,
+    'Catatan Baris': '-'
+  }], { minColWidth: 12, maxColWidth: 60, padding: 5 });
+
+  XLSX.utils.book_append_sheet(wb, wsItems, 'Rincian Barang');
+
+  // 2. METADATA RESMI DOKUMEN (Sheet 2)
+  const metaData = [
+    { 'Parameter Dokumen': 'No. Transaksi (Kode TO)', 'Nilai / Keterangan': doc.trxCode || '-' },
+    { 'Parameter Dokumen': 'Tipe Transaksi', 'Nilai / Keterangan': `Transfer Order ${typeText}` },
+    { 'Parameter Dokumen': 'No. Referensi Dokumen', 'Nilai / Keterangan': doc.noDocument || '-' },
+    { 'Parameter Dokumen': 'Tanggal Dokumen', 'Nilai / Keterangan': doc.tanggal || '-' },
+    { 'Parameter Dokumen': 'Status Validasi', 'Nilai / Keterangan': doc.status === 'DRAFT' ? 'DRAFT SEMENTARA' : 'RESMI & TERBUKU' },
+    { 'Parameter Dokumen': 'Area Default', 'Nilai / Keterangan': doc.defaultLocation || 'ZONE-STAGING' },
+    { 'Parameter Dokumen': 'Total Rincian SKU', 'Nilai / Keterangan': `${items.length} Baris SKU` },
+    { 'Parameter Dokumen': 'Total Akumulasi Fisik', 'Nilai / Keterangan': `${totalQty} Unit` },
+    { 'Parameter Dokumen': 'Catatan Dokumen', 'Nilai / Keterangan': doc.keterangan || '-' }
+  ];
+
+  const wsMeta = createStyledSheet(metaData, { minColWidth: 24, maxColWidth: 60, padding: 6 });
+  XLSX.utils.book_append_sheet(wb, wsMeta, 'Info Dokumen');
+
+  const fileName = `Transfer_Order_${doc.trxCode || 'Doc'}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+}
+
+/**
+ * 2. EKSPOR LEMBAR KERJA PEMINDAHAN STOK RESMI (.xlsx MODERN)
+ * Menghasilkan file Office OpenXML Spreadsheet (.xlsx) modern.
+ * - Sheet 1: "Daftar Mutasi Rak" (Tabel Rute Perpindahan dengan auto-fit width, autofilter, format angka)
+ * - Sheet 2: "Info Lembar Kerja" (Metadata Pelaksana & Status)
+ * @param {object} header - Header worksheet (docNo, tanggal, operator, keterangan)
+ * @param {Array<object>} items - Baris item perpindahan
+ */
+export function exportMovementWorksheetExcel(header, items = []) {
+  if (!header) return;
+
+  const totalQty = items.reduce((sum, it) => sum + (Number(it.qty) || 0), 0);
+
+  // 1. DATA TABEL MUTASI RUTE (Sheet 1)
+  const tableData = items.map((it, idx) => ({
+    'No': idx + 1,
+    'Kode SKU': it.uniqCode || '',
+    'Nama Barang': it.deskripsi || '',
+    'Dari Rak (From)': it.fromLocation || '',
+    'Ke Rak (To)': it.toLocation || '',
+    'Qty Pindah': Number(it.qty) || 0,
+    'Satuan': it.satuan || 'UNIT',
+    'Catatan Rute': it.keterangan || ''
+  }));
+
+  const wb = XLSX.utils.book_new();
+
+  const wsItems = createStyledSheet(tableData.length > 0 ? tableData : [{
+    'No': 1,
+    'Kode SKU': '-',
+    'Nama Barang': 'Belum ada item dalam lembar kerja',
+    'Dari Rak (From)': '-',
+    'Ke Rak (To)': '-',
+    'Qty Pindah': 0,
+    'Satuan': '-',
+    'Catatan Rute': '-'
+  }], { minColWidth: 12, maxColWidth: 60, padding: 5 });
+
+  XLSX.utils.book_append_sheet(wb, wsItems, 'Daftar Mutasi Rak');
+
+  // 2. METADATA LEMBAR KERJA (Sheet 2)
+  const metaData = [
+    { 'Parameter Lembar Kerja': 'No. Dokumen Mutasi', 'Nilai / Keterangan': header.docNo || '-' },
+    { 'Parameter Lembar Kerja': 'Tanggal Pelaksanaan', 'Nilai / Keterangan': header.tanggal || '-' },
+    { 'Parameter Lembar Kerja': 'Operator / Petugas', 'Nilai / Keterangan': header.operator || 'Staf Gudang' },
+    { 'Parameter Lembar Kerja': 'Status Lembar Kerja', 'Nilai / Keterangan': header.status === 'APPROVED' ? 'SELESAI (APPROVED)' : 'LEMBAR KERJA / DRAFT' },
+    { 'Parameter Lembar Kerja': 'Total Rute Mutasi', 'Nilai / Keterangan': `${items.length} Baris SKU` },
+    { 'Parameter Lembar Kerja': 'Total Unit Dipindahkan', 'Nilai / Keterangan': `${totalQty} Unit` },
+    { 'Parameter Lembar Kerja': 'Instruksi Kerja', 'Nilai / Keterangan': header.keterangan || '-' }
+  ];
+
+  const wsMeta = createStyledSheet(metaData, { minColWidth: 24, maxColWidth: 60, padding: 6 });
+  XLSX.utils.book_append_sheet(wb, wsMeta, 'Info Lembar Kerja');
+
+  const fileName = `Movement_Worksheet_${header.docNo || 'Doc'}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+}
+
+/**
  * Universal Date Parser yang Sangat Fleksibel
  * Mendukung:
  * 1. Serial Number Tanggal Excel (misal 45321)

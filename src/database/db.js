@@ -16,6 +16,15 @@ db.version(3).stores({
   movements: '++id, &docNo, tanggal, status, totalItems, totalQty, createdAt'
 });
 
+db.version(4).stores({
+  items: '++id, &uniqCode, deskripsi, satuan, minStock, createdAt',
+  transactions: '++id, &trxCode, type, tanggal, noDocument, createdAt',
+  locations: '++id, &code, name, type, maxCapacity, createdAt',
+  item_locations: '++id, itemCode, locationCode, qty',
+  movements: '++id, &docNo, tanggal, status, totalItems, totalQty, createdAt',
+  form_drafts: '&key, updatedAt'
+});
+
 // Helper: Generate Kode Unik Transaksi Otomatis
 export async function generateAutoTrxCode(type) {
   const prefix = type === 'IN' ? 'INB' : 'OUT';
@@ -170,6 +179,7 @@ export async function calculateStockMap(excludeDocId = null, preloadedTransactio
 
   for (let d = 0; d < transactions.length; d++) {
     const doc = transactions[d];
+    if (doc.status === 'DRAFT') continue;
     if (excludeDocId && doc.id === excludeDocId) continue;
     if (!doc.items || !Array.isArray(doc.items)) continue;
 
@@ -289,6 +299,7 @@ export async function calculateItemPPICMetrics(uniqCode, customLeadTime = null, 
   const dailyOutMap = {};
 
   for (const doc of transactions) {
+    if (doc.status === 'DRAFT') continue;
     if (doc.type === 'OUT' && doc.tanggal >= ninetyDaysAgoStr && Array.isArray(doc.items)) {
       for (const line of doc.items) {
         if (line.uniqCode === uniqCode) {
@@ -377,6 +388,7 @@ export async function getItemLedgerHistory(uniqCode, startDate = null, endDate =
 
   // Mutasi Dokumen
   for (const doc of transactions) {
+    if (doc.status === 'DRAFT') continue;
     if (!doc.items || !Array.isArray(doc.items)) continue;
 
     for (const line of doc.items) {
@@ -418,12 +430,75 @@ export async function getItemLedgerHistory(uniqCode, startDate = null, endDate =
     };
   });
 
-  // Filter tanggal
-  return ledgerEntries.filter(entry => {
+  // Filter tanggal dengan penyertaan Saldo Awal (Opening Balance) yang akurat
+  if (!startDate && !endDate) {
+    return ledgerEntries;
+  }
+
+  // Hitung Saldo Awal sebelum startDate
+  let openingBalance = 0;
+  if (startDate) {
+    const priorEntries = ledgerEntries.filter(entry => entry.tanggal < startDate);
+    if (priorEntries.length > 0) {
+      openingBalance = priorEntries[priorEntries.length - 1].balance;
+    }
+  }
+
+  const inRangeEntries = ledgerEntries.filter(entry => {
     if (startDate && entry.tanggal < startDate) return false;
     if (endDate && entry.tanggal > endDate) return false;
     return true;
   });
+
+  // Jika ada startDate dan baris pertama bukan registrasi di tanggal startDate persis,
+  // sertakan baris Saldo Awal Periode agar kartu stok dan diagram tidak putus/nol.
+  if (startDate) {
+    const openingEntry = {
+      docId: 0,
+      trxCode: 'SALDO-AWAL',
+      type: 'REG',
+      tanggal: startDate,
+      noDocument: 'SALDO-AWAL',
+      uniqCode: uniqCode,
+      deskripsi: item?.deskripsi || '',
+      satuan: item?.satuan || '',
+      lineKeterangan: `Saldo Awal Periode per ${startDate}`,
+      docKeterangan: 'Saldo Awal Periode',
+      inQty: 0,
+      outQty: 0,
+      balance: openingBalance,
+      createdAt: `${startDate}T00:00:00.000Z`
+    };
+
+    // Jika di dalam range tidak ada transaksi sama sekali, tambahkan titik penutup di endDate
+    if (inRangeEntries.length === 0) {
+      const closingDate = endDate || new Date().toISOString().split('T')[0];
+      const closingEntry = {
+        docId: 99999999,
+        trxCode: 'SALDO-AKHIR',
+        type: 'REG',
+        tanggal: closingDate,
+        noDocument: 'SALDO-BERJALAN',
+        uniqCode: uniqCode,
+        deskripsi: item?.deskripsi || '',
+        satuan: item?.satuan || '',
+        lineKeterangan: `Saldo Berjalan Stabil per ${closingDate}`,
+        docKeterangan: 'Saldo Berjalan',
+        inQty: 0,
+        outQty: 0,
+        balance: openingBalance,
+        createdAt: `${closingDate}T23:59:59.000Z`
+      };
+      return [openingEntry, closingEntry];
+    }
+
+    // Sisipkan Saldo Awal di posisi paling depan jika tanggal transaksi pertama > startDate
+    if (inRangeEntries[0].tanggal > startDate || inRangeEntries[0].trxCode !== 'REG-ITEM') {
+      return [openingEntry, ...inRangeEntries];
+    }
+  }
+
+  return inRangeEntries;
 }
 
 // =========================================================================
@@ -755,7 +830,7 @@ export async function executeApproveMovement(movementId) {
 
 // Alokasi otomatis stok dokumen Transfer Order ke lokasi rak (Default: ZONE-STAGING)
 export async function applyTransactionStockToLocations(txDoc, isRevert = false) {
-  if (!txDoc || !Array.isArray(txDoc.items)) return;
+  if (!txDoc || txDoc.status === 'DRAFT' || !Array.isArray(txDoc.items)) return;
   await seedLocationDataIfEmpty();
 
   await db.transaction('rw', db.item_locations, async () => {
@@ -831,10 +906,11 @@ export async function applyTransactionStockToLocations(txDoc, isRevert = false) 
 // SISTEM DETEKSI DINI & PERINGATAN OTOMATIS GUDANG (SMART ALERTS)
 // ==============================================================
 export async function getWarehouseEarlyWarnings(preloadedLocations = null) {
-  const [locations, itemLocs, items] = await Promise.all([
+  const [locations, itemLocs, items, stockMap] = await Promise.all([
     preloadedLocations || getLocationDetailsWithOccupancy(),
     db.item_locations.toArray(),
-    db.items.toArray()
+    db.items.toArray(),
+    calculateStockMap()
   ]);
 
   const itemMap = {};
@@ -861,10 +937,11 @@ export async function getWarehouseEarlyWarnings(preloadedLocations = null) {
 
   // 4. Deteksi Dead Stock / Anomali Alokasi Lokasi
   const unallocatedItems = items.filter(it => {
+    const currentStock = stockMap[it.uniqCode]?.balance || 0;
     const allocated = itemLocs
       .filter(il => il.itemCode === it.uniqCode)
       .reduce((sum, curr) => sum + (Number(curr.qty) || 0), 0);
-    return it.stok > 0 && allocated === 0;
+    return currentStock > 0 && allocated === 0;
   });
 
   const totalWarnings = overcapacityLocations.length + nearCapacityLocations.length + (stagingItems.length > 0 ? 1 : 0);
@@ -876,5 +953,37 @@ export async function getWarehouseEarlyWarnings(preloadedLocations = null) {
     unallocatedItems,
     totalWarnings
   };
+}
+
+// ==============================================================
+// AUTO-SAVE DRAF FORM (INDEXEDDB)
+// ==============================================================
+export async function saveFormDraft(key, data) {
+  try {
+    await db.form_drafts.put({
+      key,
+      data,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn('Gagal menyimpan draf form ke IndexedDB:', err);
+  }
+}
+
+export async function getFormDraft(key) {
+  try {
+    return await db.form_drafts.get(key);
+  } catch (err) {
+    console.warn('Gagal mengambil draf form dari IndexedDB:', err);
+    return null;
+  }
+}
+
+export async function deleteFormDraft(key) {
+  try {
+    await db.form_drafts.delete(key);
+  } catch (err) {
+    console.warn('Gagal menghapus draf form dari IndexedDB:', err);
+  }
 }
 

@@ -1848,6 +1848,7 @@ async function resetToDemo() {
     await db.locations.clear();
     await db.item_locations.clear();
     await db.movements.clear();
+    if (db.form_drafts) await db.form_drafts.clear();
     await seedDemoDataIfEmpty(true);
     await seedLocationDataIfEmpty(true);
     emit('refresh-data');

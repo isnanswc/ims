@@ -42,11 +42,11 @@
     </div>
 
     <!-- Sheet Tabs Navigation (Dashboard, Kelola Lokasi, Movement, Worksheet) -->
-    <div class="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl max-w-fit border border-zinc-200 dark:border-zinc-800">
+    <div class="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl overflow-x-auto max-w-full scrollbar-none border border-zinc-200 dark:border-zinc-800">
       <button 
         @click="switchSheet('dashboard')"
         :class="[
-          'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all',
+          'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer',
           activeSubTab === 'dashboard' 
             ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm' 
             : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
@@ -59,7 +59,7 @@
       <button 
         @click="switchSheet('manage')"
         :class="[
-          'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all',
+          'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer',
           activeSubTab === 'manage' 
             ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm' 
             : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
@@ -72,7 +72,7 @@
       <button 
         @click="switchSheet('movements')"
         :class="[
-          'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all',
+          'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer',
           activeSubTab === 'movements' 
             ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm' 
             : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
@@ -85,9 +85,9 @@
       <button 
         v-if="activeSubTab === 'worksheet'"
         @click="switchSheet('worksheet')"
-        class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm border border-zinc-950 dark:border-white"
+        class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-sm border border-zinc-950 dark:border-white shrink-0 cursor-pointer"
       >
-        <ArrowLeftRight class="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+        <ArrowLeftRight class="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 animate-pulse" />
         <span>Movement Worksheet (Aktif)</span>
       </button>
     </div>
@@ -100,55 +100,63 @@
       <SkeletonLoader v-if="isLoading" type="kpi" :count="4" />
       <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <!-- 1. Total Kapasitas Gudang -->
-        <div class="glass-card p-3.5 sm:p-4 border-l-4 border-l-blue-500">
-          <span class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 block">Total Kapasitas Fisik</span>
+        <div class="glass-card p-3.5 sm:p-4 border-l-2 border-l-zinc-950 dark:border-l-white">
+          <span class="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 block">Total Kapasitas Fisik</span>
           <div class="flex items-baseline justify-between mt-1">
-            <strong class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ totalMaxCapacity }}</strong>
-            <span class="text-[10px] text-slate-400 font-mono">Unit Maks</span>
+            <strong class="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white font-mono">{{ totalMaxCapacity }}</strong>
+            <span class="text-[10px] text-zinc-400 font-mono">Unit Maks</span>
           </div>
-          <p class="text-[11px] text-slate-400 mt-1">Akumulasi seluruh rak & bin</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Daya tampung seluruh rak & bin</p>
         </div>
 
         <!-- 2. Total Terisi Saat Ini -->
-        <div class="glass-card p-3.5 sm:p-4 border-l-4 border-l-emerald-500">
-          <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">Total Stok Tersimpan</span>
+        <div class="glass-card p-3.5 sm:p-4 border-l-2 border-l-zinc-800 dark:border-l-zinc-300">
+          <span class="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 block">Total Stok Fisik Terisi</span>
           <div class="flex items-baseline justify-between mt-1">
-            <strong class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ totalCurrentOccupancy }}</strong>
-            <span class="text-[10px] text-slate-400 font-mono">Unit Fisik</span>
+            <strong class="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white font-mono">{{ totalCurrentOccupancy }}</strong>
+            <span class="text-[10px] text-zinc-400 font-mono">Unit Fisik</span>
           </div>
-          <p class="text-[11px] text-slate-400 mt-1">Tersedia: {{ totalAvailableCapacity }} unit ruang</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Sisa ruang: <span class="font-bold text-zinc-900 dark:text-zinc-100 font-mono">{{ totalAvailableCapacity }}</span> unit</p>
         </div>
 
         <!-- 3. Utilisasi Keseluruhan -->
-        <div class="glass-card p-3.5 sm:p-4 border-l-4 border-l-indigo-500">
-          <span class="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 block">Rata-rata Utilisasi</span>
+        <div class="glass-card p-3.5 sm:p-4 border-l-2 border-l-zinc-700 dark:border-l-zinc-400">
+          <span class="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 block">Rata-rata Utilisasi</span>
           <div class="flex items-baseline justify-between mt-1">
-            <strong class="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ overallUtilization }}%</strong>
-            <span class="text-[10px] text-slate-400 font-mono">Kepadatan</span>
+            <strong class="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white font-mono">{{ overallUtilization }}%</strong>
+            <span class="text-[10px] font-mono" :class="overallUtilization >= 85 ? 'text-amber-500 font-bold' : 'text-zinc-400'">
+              {{ overallUtilization >= 90 ? 'Kritis' : overallUtilization >= 80 ? 'Padat' : 'Optimal' }}
+            </span>
           </div>
-          <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+          <div class="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
             <div 
-              class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+              class="h-full bg-zinc-950 dark:bg-zinc-100 rounded-full transition-all duration-500"
               :style="{ width: `${overallUtilization}%` }"
             ></div>
           </div>
         </div>
 
-        <!-- 4. Jumlah Area & Movement -->
-        <div class="glass-card p-3.5 sm:p-4 border-l-4 border-l-amber-500">
-          <span class="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 block">Area & Dokumen</span>
+        <!-- 4. Rasio Kesehatan Ruang Gudang -->
+        <div class="glass-card p-3.5 sm:p-4 border-l-2 border-l-zinc-600 dark:border-l-zinc-500">
+          <span class="text-[10px] uppercase font-bold text-zinc-500 dark:text-zinc-400 block">Rasio Rak Optimal</span>
           <div class="flex items-baseline justify-between mt-1">
-            <strong class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ locationsList.length }} Area</strong>
-            <span class="text-[10px] text-slate-400 font-mono">{{ movementsList.length }} Mutasi</span>
+            <strong class="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white font-mono">
+              {{ occupancyStatusBreakdown.optimal.percent }}%
+            </strong>
+            <span class="text-[10px] text-zinc-400 font-mono">{{ occupancyStatusBreakdown.optimal.count }}/{{ locationsList.length }} Rak</span>
           </div>
-          <p class="text-[11px] text-slate-400 mt-1">Status gudang optimal</p>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+            {{ occupancyStatusBreakdown.warning.count + occupancyStatusBreakdown.full.count > 0 
+              ? `${occupancyStatusBreakdown.warning.count + occupancyStatusBreakdown.full.count} rak perlu perhatian` 
+              : 'Semua rak beroperasi aman' }}
+          </p>
         </div>
       </div>
 
       <!-- Smart Early Warnings & Automation Hub -->
       <div 
         v-if="earlyWarnings.totalWarnings > 0"
-        class="glass-card p-4 border border-zinc-300 dark:border-zinc-700 space-y-3"
+        class="glass-card p-4 border border-zinc-200 dark:border-zinc-800 space-y-3"
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -157,13 +165,13 @@
             </div>
             <div>
               <h3 class="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                <span>Pusat Peringatan & Deteksi Dini Operasional Gudang</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                  {{ earlyWarnings.totalWarnings }} Perhatian
+                <span>Pusat Deteksi Dini & Otomasi Gudang</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  {{ earlyWarnings.totalWarnings }} Peringatan
                 </span>
               </h3>
               <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Sistem mendeteksi potensi hambatan operasional, penumpukan staging, atau beban kapasitas berlebih.
+                Peringatan dini penumpukan barang masuk atau beban area melampaui toleransi.
               </p>
             </div>
           </div>
@@ -173,42 +181,42 @@
           <!-- Warning 1: Overcapacity -->
           <div 
             v-if="earlyWarnings.overcapacityLocations.length > 0"
-            class="p-2.5 rounded-xl border border-rose-300 dark:border-rose-900 bg-rose-50/70 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200 text-xs flex flex-col justify-between"
+            class="p-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 text-xs flex flex-col justify-between"
           >
             <div>
-              <span class="font-bold block flex items-center gap-1.5 text-rose-700 dark:text-rose-400">
+              <span class="font-bold flex items-center gap-1.5 text-rose-600 dark:text-rose-400">
                 <AlertTriangle class="w-3.5 h-3.5" />
                 Over-Kapasitas ({{ earlyWarnings.overcapacityLocations.length }} Rak)
               </span>
-              <p class="text-[11px] text-rose-800/80 dark:text-rose-300/80 mt-1">
-                Rak: {{ earlyWarnings.overcapacityLocations.map(l => l.code).join(', ') }} melebihi daya tampung fisik!
+              <p class="text-[11px] text-zinc-600 dark:text-zinc-400 mt-1">
+                Rak: <strong class="text-zinc-950 dark:text-zinc-100 font-mono">{{ earlyWarnings.overcapacityLocations.map(l => l.code).join(', ') }}</strong> melebihi daya tampung fisik!
               </p>
             </div>
             <button 
-              @click="openNewWorksheet"
-              class="mt-2 text-[10px] font-bold px-2 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg self-start transition-colors"
+              @click="startMovementFromLocation(earlyWarnings.overcapacityLocations[0])"
+              class="mt-2 text-[10px] font-bold px-2 py-1 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 rounded-lg self-start transition-colors cursor-pointer"
             >
               Relokasi Stok Rak Ini &rarr;
             </button>
           </div>
 
-          <!-- Warning 2: Staging Backlog (Barang menumpuk di Staging Area) -->
+          <!-- Warning 2: Staging Backlog -->
           <div 
             v-if="earlyWarnings.stagingItems.length > 0"
-            class="p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100/70 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 text-xs flex flex-col justify-between"
+            class="p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100/70 dark:bg-zinc-800/50 text-xs flex flex-col justify-between"
           >
             <div>
-              <span class="font-bold block flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
+              <span class="font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
                 <Boxes class="w-3.5 h-3.5 text-blue-500" />
-                Staging Area Backlog ({{ earlyWarnings.stagingItems.length }} SKU)
+                Staging Backlog ({{ earlyWarnings.stagingItems.length }} SKU)
               </span>
               <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
-                Barang baru masuk belum dialokasikan ke rak penyimpanan tetap (Putaway tertunda).
+                Barang masuk belum dialokasikan ke rak penyimpanan tetap (Putaway tertunda).
               </p>
             </div>
             <button 
               @click="quickPutawayFromStaging"
-              class="mt-2 text-[10px] font-bold px-2.5 py-1 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 rounded-lg self-start transition-colors flex items-center gap-1"
+              class="mt-2 text-[10px] font-bold px-2.5 py-1 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-950 rounded-lg self-start transition-colors flex items-center gap-1 cursor-pointer"
             >
               <span>🚀 Putaway Otomatis ke Rak Kosong</span>
             </button>
@@ -217,152 +225,408 @@
           <!-- Warning 3: Near Capacity (>=85%) -->
           <div 
             v-if="earlyWarnings.nearCapacityLocations.length > 0"
-            class="p-2.5 rounded-xl border border-amber-300 dark:border-amber-800/80 bg-amber-50/70 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-xs flex flex-col justify-between"
+            class="p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-xs flex flex-col justify-between"
           >
             <div>
-              <span class="font-bold block flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+              <span class="font-bold flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                 <AlertTriangle class="w-3.5 h-3.5" />
                 Kapasitas Kritis &ge;85% ({{ earlyWarnings.nearCapacityLocations.length }} Rak)
               </span>
-              <p class="text-[11px] text-amber-800/80 dark:text-amber-300/80 mt-1">
-                Rak: {{ earlyWarnings.nearCapacityLocations.map(l => l.code).join(', ') }} hampir penuh.
+              <p class="text-[11px] text-zinc-600 dark:text-zinc-400 mt-1">
+                Rak: <strong class="text-zinc-950 dark:text-zinc-100 font-mono">{{ earlyWarnings.nearCapacityLocations.map(l => l.code).join(', ') }}</strong> hampir penuh.
               </p>
             </div>
-            <span class="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-mono">Disarankan kontrol mutasi</span>
+            <button 
+              @click="openManageWithStatusFilter('WARNING')"
+              class="mt-2 text-[10px] font-semibold text-zinc-700 dark:text-zinc-300 hover:underline self-start cursor-pointer"
+            >
+              Lihat di Daftar Rak &rarr;
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Grid Visualisasi Rak Gudang (Occupancy Gauge Cards) -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Boxes class="w-4 h-4 text-blue-600" />
-            <span>Tata Letak Rak & Beban Kapasitas</span>
-          </h2>
-          <span class="text-xs text-slate-400">Klik area untuk melihat daftar SKU di dalamnya</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          <div 
-            v-for="loc in locationsList" 
-            :key="loc.code"
-            @click="openLocationDetailModal(loc)"
-            class="glass-card p-4 cursor-pointer hover:shadow-md transition-all group border hover:border-blue-400/50"
-          >
-            <!-- Card Header: Code & Type -->
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <span class="font-mono font-black text-xs px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                  {{ loc.code }}
-                </span>
-                <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 group-hover:text-blue-600 transition-colors">
-                  {{ loc.name }}
-                </h3>
-              </div>
-              <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-full border', loc.statusColor]">
-                {{ loc.statusLabel }}
+      <!-- ============================================================== -->
+      <!-- GRAFIK UTAMA 1 & 2: DONUT DISTRIBUSI & UTILISASI ZONA GUDANG   -->
+      <!-- ============================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- GRAFIK 1: DONUT CHART KOMPOSISI BEBAN OKUPANSI GUDANG -->
+        <div class="lg:col-span-5 glass-card p-4 sm:p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+              <h3 class="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                <Boxes class="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+                <span>Distribusi Status Beban Okupansi</span>
+              </h3>
+              <span class="text-[10.5px] font-mono text-zinc-400">
+                {{ locationsList.length }} Rak
               </span>
             </div>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+              Visualisasi proporsi beban rak berdasarkan batas toleransi kapasitas.
+            </p>
+          </div>
 
-            <!-- Tipe Area -->
-            <p class="text-[11px] text-slate-400 mt-0.5">{{ loc.type }} • {{ loc.keterangan || 'Tanpa catatan' }}</p>
+          <!-- Donut SVG + Legend Center -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-5 py-2">
+            <!-- SVG Donut Chart -->
+            <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <!-- Background Ring -->
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  class="stroke-zinc-200 dark:stroke-zinc-800"
+                  stroke-width="12"
+                  fill="transparent"
+                />
+                <!-- Segmented Rings -->
+                <circle
+                  v-for="seg in donutSegments"
+                  :key="seg.key"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  :stroke="seg.color"
+                  stroke-width="12"
+                  fill="transparent"
+                  :stroke-dasharray="`${seg.dashLength} ${seg.circumference}`"
+                  :stroke-dashoffset="seg.dashOffset"
+                  class="transition-all duration-700 ease-out"
+                />
+              </svg>
 
-            <!-- Gauge Progress Bar -->
-            <div class="mt-3 space-y-1">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-500 font-medium">Beban Terisi:</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">
-                  {{ loc.currentQty }} / {{ loc.maxCapacity }} unit ({{ loc.occupancyPercent }}%)
+              <!-- Central Metric Text -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
+                <span class="text-lg font-black font-mono text-zinc-950 dark:text-white">
+                  {{ overallUtilization }}%
+                </span>
+                <span class="text-[9.5px] font-medium text-zinc-400 uppercase tracking-wider">
+                  Utilisasi
                 </span>
               </div>
-              <div class="w-full bg-slate-200/80 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            </div>
+
+            <!-- Interactive Legend Stack -->
+            <div class="space-y-1.5 w-full sm:w-auto text-xs min-w-[170px]">
+              <div 
+                v-for="seg in donutSegments" 
+                :key="seg.key"
+                @click="openManageWithStatusFilter(seg.key)"
+                class="flex items-center justify-between p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer group"
+                :title="`Klik untuk melihat daftar rak dengan status ${seg.label}`"
+              >
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: seg.color }"></div>
+                  <span class="text-[11px] text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-950 dark:group-hover:text-white truncate">
+                    {{ seg.label }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-1.5 font-mono text-[11px] shrink-0">
+                  <strong class="font-bold text-zinc-950 dark:text-white">{{ seg.count }}</strong>
+                  <span class="text-zinc-400 text-[10px]">({{ seg.percent }}%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-500">
+            <span>💡 Klik status untuk memfilter daftar rak</span>
+            <button @click="switchSheet('manage')" class="font-bold text-zinc-950 dark:text-white hover:underline cursor-pointer">
+              Kelola Rak &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- GRAFIK 2: UTILISASI PER KATEGORI / TIPE ZONA GUDANG (BAR CHART) -->
+        <div class="lg:col-span-7 glass-card p-4 sm:p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+              <h3 class="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                <SlidersHorizontal class="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+                <span>Kapasitas & Utilisasi per Zona Gudang</span>
+              </h3>
+              <span class="text-[10.5px] font-mono text-zinc-400">
+                {{ categoryOccupancyStats.length }} Kategori
+              </span>
+            </div>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">
+              Perbandingan beban fisik antara zona Fast Picking, Bulk, Standar, Staging, dll.
+            </p>
+          </div>
+
+          <!-- Horizontal Bar Chart Komparatif -->
+          <div class="space-y-3 py-1">
+            <div 
+              v-for="cat in categoryOccupancyStats" 
+              :key="cat.type"
+              @click="openManageWithTypeFilter(cat.type)"
+              class="p-2 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group"
+              :title="`Klik untuk menyaring seluruh rak di kategori ${cat.type}`"
+            >
+              <!-- Baris Judul Kategori & Angka -->
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <div class="flex items-center gap-2 min-w-0">
+                  <strong class="text-zinc-900 dark:text-white group-hover:underline truncate text-xs">
+                    {{ cat.type }}
+                  </strong>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700">
+                    {{ cat.count }} Rak
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2 text-right shrink-0">
+                  <span class="font-mono text-xs font-bold text-zinc-950 dark:text-white">
+                    {{ cat.currentQty }} / {{ cat.totalCapacity }}
+                  </span>
+                  <span 
+                    class="font-mono text-[10.5px] font-bold px-1.5 py-0.5 rounded"
+                    :class="[
+                      cat.percent >= 90 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' :
+                      cat.percent >= 75 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                      'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    ]"
+                  >
+                    {{ cat.percent }}%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Bar Progres Komparatif -->
+              <div class="w-full bg-zinc-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
                 <div 
                   :class="[
                     'h-full rounded-full transition-all duration-500',
-                    loc.occupancyPercent >= 90 ? 'bg-rose-500' :
-                    loc.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                    cat.percent >= 90 ? 'bg-rose-500' :
+                    cat.percent >= 75 ? 'bg-amber-500' : 'bg-zinc-950 dark:bg-zinc-100'
                   ]"
-                  :style="{ width: `${loc.occupancyPercent}%` }"
+                  :style="{ width: `${Math.min(100, cat.percent)}%` }"
                 ></div>
               </div>
-              <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5">
-                <span>{{ loc.items.length }} SKU tersimpan</span>
-                <span>Sisa Ruang: {{ loc.availableCapacity }} unit</span>
+
+              <div class="flex items-center justify-between text-[10px] text-zinc-400 mt-1">
+                <span>Sisa Ruang: <strong class="text-zinc-700 dark:text-zinc-300 font-mono">{{ cat.availableCapacity }} unit</strong></span>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-600 dark:text-zinc-400">Filter Zona Ini &rarr;</span>
               </div>
             </div>
+          </div>
 
-            <!-- Preview 2 Item Teratas -->
-            <div v-if="loc.items.length > 0" class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 space-y-1">
-              <div 
-                v-for="item in loc.items.slice(0, 2)" 
-                :key="item.itemCode"
-                class="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400"
-              >
-                <span class="truncate max-w-[170px]">{{ item.deskripsi }}</span>
-                <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ item.qty }} {{ item.satuan }}</span>
-              </div>
-              <p v-if="loc.items.length > 2" class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold pt-0.5">
-                +{{ loc.items.length - 2 }} item lainnya...
+          <div class="pt-2 border-t border-zinc-200/80 dark:border-zinc-800 text-[11px] text-zinc-500 flex items-center justify-between">
+            <span>💡 Monitor zona yang padat untuk menghindari penumpukan</span>
+            <span class="font-mono text-[10.5px] text-zinc-400">Akumulasi Real-Time</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- GRAFIK 3 & 4: ACTIONABLE INSIGHTS (TERPADAT VS TERLONGGAR)     -->
+      <!-- ============================================================== -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- KARTU 3: TOP 5 AREA TERPADAT (PRIORITAS RELOKASI) -->
+        <div class="glass-card p-4 sm:p-5 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                <AlertTriangle class="w-4 h-4 text-amber-500" />
+                <span>5 Rak Terpadat (Prioritas Relokasi)</span>
+              </h3>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Area dengan beban okupansi tertinggi yang berpotensi menghambat alur gudang.
               </p>
             </div>
-            <div v-else class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400 italic">
-              Area saat ini kosong (siap digunakan)
+            <button 
+              @click="openManageWithStatusFilter('WARNING')"
+              class="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white cursor-pointer"
+            >
+              Semua &rarr;
+            </button>
+          </div>
+
+          <div v-if="topOccupiedLocations.length === 0" class="py-6 text-center text-xs text-zinc-400">
+            Belum ada data rak gudang.
+          </div>
+
+          <div v-else class="space-y-2">
+            <div 
+              v-for="loc in topOccupiedLocations" 
+              :key="loc.code"
+              class="p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 flex items-center justify-between gap-3 text-xs"
+            >
+              <div class="min-w-0 flex items-center gap-2.5">
+                <span class="font-mono font-bold text-[11px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 shrink-0">
+                  {{ loc.code }}
+                </span>
+                <div class="min-w-0">
+                  <strong class="text-zinc-950 dark:text-white block truncate text-xs">{{ loc.name }}</strong>
+                  <span class="text-[10.5px] text-zinc-400 font-mono">
+                    {{ loc.currentQty }}/{{ loc.maxCapacity }} u • Sisa {{ loc.availableCapacity }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <span 
+                  class="font-mono text-xs font-black px-2 py-0.5 rounded-full"
+                  :class="[
+                    loc.occupancyPercent >= 90 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' :
+                    loc.occupancyPercent >= 75 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' :
+                    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                  ]"
+                >
+                  {{ loc.occupancyPercent }}%
+                </span>
+
+                <button 
+                  @click="startMovementFromLocation(loc)"
+                  title="Pindahkan stok dari area ini sekarang"
+                  class="px-2.5 py-1 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-lg text-[10.5px] font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeftRight class="w-3 h-3" />
+                  <span class="hidden sm:inline">Pindahkan</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- KARTU 4: TOP 5 AREA PALING LONGGAR (REKOMENDASI PUTAWAY TERBAIK) -->
+        <div class="glass-card p-4 sm:p-5 space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                <Boxes class="w-4 h-4 text-emerald-500" />
+                <span>5 Rak Terlonggar (Rekomendasi Putaway)</span>
+              </h3>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Area dengan sisa kapasitas terbesar, ideal sebagai tujuan barang masuk baru.
+              </p>
+            </div>
+            <button 
+              @click="openManageWithStatusFilter('LOW')"
+              class="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white cursor-pointer"
+            >
+              Semua &rarr;
+            </button>
+          </div>
+
+          <div v-if="topAvailableLocations.length === 0" class="py-6 text-center text-xs text-zinc-400">
+            Seluruh rak terisi penuh.
+          </div>
+
+          <div v-else class="space-y-2">
+            <div 
+              v-for="loc in topAvailableLocations" 
+              :key="loc.code"
+              class="p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 flex items-center justify-between gap-3 text-xs"
+            >
+              <div class="min-w-0 flex items-center gap-2.5">
+                <span class="font-mono font-bold text-[11px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 shrink-0">
+                  {{ loc.code }}
+                </span>
+                <div class="min-w-0">
+                  <strong class="text-zinc-950 dark:text-white block truncate text-xs">{{ loc.name }}</strong>
+                  <span class="text-[10.5px] text-zinc-400">
+                    {{ loc.type }} • Terisi {{ loc.occupancyPercent }}%
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <div class="text-right">
+                  <strong class="font-mono text-xs font-extrabold text-emerald-600 dark:text-emerald-400 block">
+                    +{{ loc.availableCapacity }} u
+                  </strong>
+                  <span class="text-[9.5px] text-zinc-400">Tersedia</span>
+                </div>
+
+                <button 
+                  @click="openLocationDetailModal(loc)"
+                  title="Lihat rincian area ini"
+                  class="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
+                >
+                  <Eye class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BANNER JEMBATAN KE TABEL KELOLA LOKASI LENGKAP -->
+      <div class="glass-card p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-zinc-200/80 dark:border-zinc-800">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-zinc-100 shrink-0">
+            <Boxes class="w-4 h-4" />
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-zinc-950 dark:text-white">
+              Manajemen Master Rak & Pencarian Rinci
+            </h4>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Gunakan tab Kelola Lokasi untuk pencarian mendalam ratusan rak, penyortiran tabel, pagination, dan perubahan kapasitas.
+            </p>
+          </div>
+        </div>
+
+        <button 
+          @click="switchSheet('manage')"
+          class="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs"
+        >
+          Buka Kelola Lokasi ({{ locationsList.length }} Area) &rarr;
+        </button>
       </div>
 
       <!-- Recent Movements Activity Section -->
       <div class="glass-card p-4 sm:p-5">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <History class="w-4 h-4 text-blue-600" />
-            <span>Perpindahan Stok Terakhir (Recent Movement)</span>
+        <div class="flex items-center justify-between mb-3 pb-2 border-b border-zinc-200/80 dark:border-zinc-800">
+          <h2 class="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+            <History class="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+            <span>Perpindahan Stok Terakhir (Recent Movement Activity)</span>
           </h2>
-          <button @click="switchSheet('movements')" class="text-xs text-blue-600 hover:underline font-semibold">
+          <button @click="switchSheet('movements')" class="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:underline font-bold cursor-pointer">
             Lihat Semua Mutasi &rarr;
           </button>
         </div>
 
-        <div v-if="movementsList.length === 0" class="py-6 text-center text-xs text-slate-400">
+        <div v-if="movementsList.length === 0" class="py-6 text-center text-xs text-zinc-400">
           Belum ada riwayat dokumen pemindahan.
         </div>
-        <div v-else class="divide-y divide-slate-100 dark:divide-slate-800">
+        <div v-else class="divide-y divide-zinc-100 dark:divide-zinc-800">
           <div 
             v-for="mov in movementsList.slice(0, 4)" 
             :key="mov.id"
-            class="py-3 flex items-center justify-between gap-3 text-xs"
+            class="py-2.5 flex items-center justify-between gap-3 text-xs"
           >
             <div class="flex items-center gap-3 min-w-0">
               <div :class="[
-                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white font-bold',
-                mov.status === 'APPROVED' ? 'bg-emerald-500' : 'bg-amber-500'
+                'w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-white font-bold text-xs',
+                mov.status === 'APPROVED' ? 'bg-zinc-950 dark:bg-zinc-100 dark:text-zinc-950' : 'bg-amber-500'
               ]">
-                <Check v-if="mov.status === 'APPROVED'" class="w-4 h-4" />
-                <Clock v-else class="w-4 h-4" />
+                <Check v-if="mov.status === 'APPROVED'" class="w-3.5 h-3.5" />
+                <Clock v-else class="w-3.5 h-3.5" />
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <span class="font-mono font-bold text-slate-900 dark:text-white">{{ mov.docNo }}</span>
+                  <span class="font-mono font-bold text-zinc-950 dark:text-white">{{ mov.docNo }}</span>
                   <span :class="[
-                    'text-[10px] font-bold px-2 py-0.5 rounded-full border',
+                    'text-[9.5px] font-bold px-2 py-0.2 rounded-full border',
                     mov.status === 'APPROVED' 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400' 
-                      : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                   ]">
                     {{ mov.status === 'APPROVED' ? 'Disetujui' : 'Draft' }}
                   </span>
                 </div>
-                <p class="text-[11px] text-slate-400 truncate mt-0.5">
-                  {{ mov.operator }} • {{ mov.keterangan || 'Pemindahan stok internal' }}
+                <p class="text-[11px] text-zinc-400 truncate mt-0.5">
+                  {{ mov.operator || 'Admin' }} • {{ mov.keterangan || 'Pemindahan stok internal' }}
                 </p>
               </div>
             </div>
 
             <div class="text-right shrink-0">
-              <span class="font-bold text-slate-900 dark:text-white block">{{ mov.totalQty }} Unit</span>
-              <span class="text-[10px] text-slate-400 font-mono">{{ mov.tanggal }}</span>
+              <span class="font-mono font-bold text-zinc-950 dark:text-white block">{{ mov.totalQty }} Unit</span>
+              <span class="text-[10px] text-zinc-400 font-mono">{{ mov.tanggal }}</span>
             </div>
           </div>
         </div>
@@ -370,455 +634,713 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- SHEET 2: KELOLA LOKASI & KAPASITAS                             -->
+    <!-- SHEET 2: KELOLA LOKASI & KAPASITAS (TABEL LIST LENGKAP & PAGINASI) -->
     <!-- ============================================================== -->
     <div v-else-if="activeSubTab === 'manage'" class="space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <!-- Search Area -->
-        <div class="relative max-w-sm w-full">
-          <Search class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input 
-            v-model="locationSearch" 
-            type="text" 
-            placeholder="Cari kode area, nama, tipe..." 
-            class="w-full pl-8 pr-3 py-1.5 glass-input rounded-xl text-xs"
-          />
-        </div>
-
-        <!-- Tombol Tambah Lokasi Baru -->
-        <button 
-          @click="openCreateLocationModal"
-          class="flex items-center gap-2 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition-all self-start sm:self-auto"
-        >
-          <Plus class="w-3.5 h-3.5" />
-          <span>Tambah Lokasi / Rak Baru</span>
-        </button>
-      </div>
-
-      <!-- Skeleton Shimmer Loading State -->
-      <div v-if="isLoading" class="space-y-4">
-        <div class="md:hidden">
-          <SkeletonLoader type="card-list" :count="3" />
-        </div>
-        <div class="hidden md:block">
-          <SkeletonLoader type="table" :count="5" />
-        </div>
-      </div>
-
-      <!-- Mobile View: Kartu Lokasi Responsif (md:hidden) -->
-      <div v-else class="md:hidden space-y-3">
-        <div v-if="filteredLocations.length === 0" class="glass-card p-6 text-center text-slate-400 text-xs">
-          Tidak ada area/lokasi yang sesuai pencarian.
-        </div>
-
-        <div 
-          v-for="loc in filteredLocations" 
-          :key="loc.code"
-          class="glass-card p-2.5 space-y-1.5 transition-all border-l-2"
-          :class="[
-            loc.occupancyPercent >= 90 ? 'border-l-rose-500' :
-            loc.occupancyPercent >= 75 ? 'border-l-amber-500' : 'border-l-emerald-500'
-          ]"
-        >
-          <!-- Baris 1: Kode & Nama Area + Status Badge -->
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <span class="font-mono font-bold text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 shrink-0">
-                {{ loc.code }}
+      <div class="glass-card p-4 sm:p-5 space-y-4">
+        <!-- Header & Action Ribbon -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200/80 dark:border-zinc-800">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+              <Boxes class="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+              <span>Kelola Master Lokasi & Rak Gudang</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 font-mono">
+                {{ filteredLocations.length }} Area
               </span>
-              <h3 class="text-xs font-bold text-zinc-900 dark:text-white truncate">{{ loc.name }}</h3>
-              <span class="text-[9.5px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-full shrink-0 hidden xs:inline">
-                {{ loc.type }}
-              </span>
-            </div>
-
-            <span :class="['text-[9.5px] font-bold px-2 py-0.5 rounded-full border shrink-0', loc.statusColor]">
-              {{ loc.statusLabel }}
-            </span>
+            </h2>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Atur kapasitas maksimal, edit detail rak, atau klik baris untuk melihat rincian SKU tersimpan.
+            </p>
           </div>
 
-          <!-- Baris 2: Strip Okupansi & Kapasitas Horizontal -->
-          <div class="flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-800 gap-2">
-            <div class="flex items-center gap-1.5">
-              <span class="text-zinc-400 text-[10px]">Terisi:</span>
-              <strong class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ loc.currentQty }}</strong>
-              <span class="text-zinc-400 text-[10px]">/ {{ loc.maxCapacity }} u</span>
-              <!-- Mini visual bar -->
-              <div class="w-10 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden shrink-0 ml-1">
-                <div 
-                  :class="[
-                    'h-full rounded-full',
-                    loc.occupancyPercent >= 90 ? 'bg-rose-500' :
-                    loc.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
-                  ]"
-                  :style="{ width: `${loc.occupancyPercent}%` }"
-                ></div>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2 text-[10.5px]">
-              <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ loc.occupancyPercent }}%</span>
-              <span class="text-zinc-300 dark:text-zinc-700">•</span>
-              <span class="text-zinc-400">Sisa: <strong class="text-zinc-700 dark:text-zinc-300 font-mono">{{ loc.availableCapacity }}</strong></span>
-            </div>
-          </div>
-
-          <!-- Baris 3: Item preview / Aksi Cepat -->
-          <div class="flex items-center justify-between pt-0.5">
-            <div class="text-[10px] text-zinc-400 truncate max-w-[140px]">
-              <span v-if="loc.items.length > 0">{{ loc.items.length }} SKU tersimpan</span>
-              <span v-else class="italic">Kosong</span>
-            </div>
-
-            <div class="flex items-center gap-1">
-              <button 
-                @click="openLocationDetailModal(loc)"
-                title="Lihat Item di Lokasi Ini"
-                class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <Eye class="w-3 h-3" />
-                <span>Detail</span>
-              </button>
-              <button 
-                @click="openEditLocationModal(loc)"
-                title="Edit Lokasi & Kapasitas"
-                class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <Pencil class="w-3 h-3" />
-                <span>Edit</span>
-              </button>
-              <button 
-                @click="deleteLocation(loc)"
-                title="Hapus Lokasi"
-                class="p-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
-              </button>
-            </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button 
+              @click="openCreateLocationModal"
+              class="flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
+            >
+              <Plus class="w-3.5 h-3.5" />
+              <span>Tambah Lokasi / Rak Baru</span>
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Desktop View: Tabel Kelola Lokasi (hidden md:block) -->
-      <div v-if="!isLoading" class="hidden md:block glass-card overflow-hidden border border-slate-200/80 dark:border-slate-800">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
-                <th class="py-2.5 px-3">Kode Lokasi</th>
-                <th class="py-2.5 px-3">Nama Area / Deskripsi</th>
-                <th class="py-2.5 px-3">Kategori</th>
-                <th class="py-2.5 px-3 text-right">Kapasitas Maksimal</th>
-                <th class="py-2.5 px-3 text-right">Terisi Saat Ini</th>
-                <th class="py-2.5 px-3 w-40 text-center">Beban Okupansi</th>
-                <th class="py-2.5 px-3 text-center">Status</th>
-                <th class="py-2.5 px-3 text-center w-28">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-              <tr v-if="filteredLocations.length === 0">
-                <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
-                  Tidak ada area/lokasi yang sesuai pencarian.
-                </td>
-              </tr>
-              <tr 
-                v-for="loc in filteredLocations" 
-                :key="loc.code"
-                class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
-              >
-                <!-- Kode -->
-                <td class="py-2.5 px-3">
-                  <span class="font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 px-2 py-0.5 rounded border border-slate-200/60 dark:border-slate-700">
-                    {{ loc.code }}
-                  </span>
-                </td>
-
-                <!-- Nama -->
-                <td class="py-2.5 px-3">
-                  <strong class="font-semibold text-slate-900 dark:text-white block">{{ loc.name }}</strong>
-                  <span class="text-[10px] text-slate-400">{{ loc.keterangan || '-' }}</span>
-                </td>
-
-                <!-- Tipe -->
-                <td class="py-2.5 px-3">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700">
-                    {{ loc.type }}
-                  </span>
-                </td>
-
-                <!-- Kapasitas Maks -->
-                <td class="py-2.5 px-3 text-right font-bold text-slate-900 dark:text-white">
-                  {{ loc.maxCapacity }} unit
-                </td>
-
-                <!-- Terisi -->
-                <td class="py-2.5 px-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
-                  {{ loc.currentQty }} unit
-                </td>
-
-                <!-- Beban Gauge -->
-                <td class="py-2.5 px-3">
-                  <div class="space-y-1">
-                    <div class="flex items-center justify-between text-[10px]">
-                      <span class="font-semibold">{{ loc.occupancyPercent }}%</span>
-                      <span class="text-slate-400">Sisa: {{ loc.availableCapacity }}</span>
-                    </div>
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                      <div 
-                        :class="[
-                          'h-full rounded-full',
-                          loc.occupancyPercent >= 90 ? 'bg-rose-500' :
-                          loc.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
-                        ]"
-                        :style="{ width: `${loc.occupancyPercent}%` }"
-                      ></div>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Status Badge -->
-                <td class="py-2.5 px-3 text-center">
-                  <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-full border', loc.statusColor]">
-                    {{ loc.statusLabel }}
-                  </span>
-                </td>
-
-                <!-- Aksi -->
-                <td class="py-2.5 px-3 text-center">
-                  <div class="flex items-center justify-center gap-1">
-                    <button 
-                      @click="openLocationDetailModal(loc)"
-                      title="Lihat Item di Lokasi Ini"
-                      class="p-1 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                    >
-                      <Eye class="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      @click="openEditLocationModal(loc)"
-                      title="Edit Lokasi & Kapasitas"
-                      class="p-1 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                    >
-                      <Pencil class="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      @click="deleteLocation(loc)"
-                      title="Hapus Lokasi"
-                      class="p-1 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                    >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============================================================== -->
-    <!-- SHEET 3: LIST DOKUMEN MOVEMENT                                 -->
-    <!-- ============================================================== -->
-    <div v-else-if="activeSubTab === 'movements'" class="space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <!-- Search & Status Filter -->
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="relative min-w-[200px] sm:min-w-[240px]">
-            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <!-- Toolbar: Search, Filter Tipe, Filter Status Okupansi, Sort & Reset -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+          <!-- Search Box -->
+          <div class="sm:col-span-4 relative">
+            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
-              v-model="movementSearch" 
+              v-model="locationSearch" 
               type="text" 
-              placeholder="Cari no doc, operator, keterangan..." 
+              placeholder="Cari kode area, nama, tipe, SKU barang..." 
               class="w-full pl-8 pr-3 py-1.5 glass-input rounded-xl text-xs"
             />
           </div>
 
-          <div class="flex items-center gap-1 p-0.5 bg-slate-200/60 dark:bg-slate-800 rounded-lg text-xs font-semibold">
+          <!-- Filter Kategori / Tipe -->
+          <div class="sm:col-span-3">
+            <select 
+              v-model="locationTypeFilter"
+              class="w-full px-2.5 py-1.5 glass-input rounded-xl text-xs font-medium"
+            >
+              <option value="ALL">Semua Kategori Tipe</option>
+              <option v-for="t in uniqueLocationTypes" :key="t" :value="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <!-- Filter Status Okupansi -->
+          <div class="sm:col-span-3">
+            <select 
+              v-model="locationStatusFilter"
+              class="w-full px-2.5 py-1.5 glass-input rounded-xl text-xs font-semibold"
+            >
+              <option value="ALL">Semua Status Okupansi</option>
+              <option value="FULL">🔴 Penuh (100%)</option>
+              <option value="WARNING">🟡 Hampir Penuh (&ge;85%)</option>
+              <option value="OPTIMAL">🟢 Optimal (16% - 84%)</option>
+              <option value="LOW">🔵 Kapasitas Lega (&le;15%)</option>
+            </select>
+          </div>
+
+          <!-- Sort Dropdown & Toggle Order -->
+          <div class="sm:col-span-2 flex items-center gap-1.5">
+            <select 
+              v-model="locationSortKey"
+              class="w-full px-2 py-1.5 glass-input rounded-xl text-xs font-medium"
+              title="Urutkan Berdasarkan"
+            >
+              <option value="code">Kode Lokasi</option>
+              <option value="name">Nama Area</option>
+              <option value="occupancyPercent">Okupansi (%)</option>
+              <option value="currentQty">Beban Terisi</option>
+              <option value="maxCapacity">Kapasitas Maks</option>
+              <option value="itemsCount">Jumlah SKU</option>
+            </select>
+
+            <button 
+              @click="locationSortOrder = (locationSortOrder === 'asc' ? 'desc' : 'asc')"
+              class="p-1.5 glass-input rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white shrink-0 cursor-pointer"
+              :title="locationSortOrder === 'asc' ? 'Urutan Naik (A-Z / Rendah ke Tinggi)' : 'Urutan Turun (Z-A / Tinggi ke Rendah)'"
+            >
+              <component :is="locationSortOrder === 'asc' ? ArrowUp : ArrowDown" class="w-3.5 h-3.5" />
+            </button>
+
+            <button 
+              v-if="isLocationFilterActive"
+              @click="resetLocationFilters"
+              class="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl shrink-0 cursor-pointer"
+              title="Reset Semua Filter"
+            >
+              <RotateCcw class="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Skeleton Loading State -->
+        <div v-if="isLoading" class="space-y-2">
+          <div class="md:hidden">
+            <SkeletonLoader type="card-list" :count="4" />
+          </div>
+          <div class="hidden md:block">
+            <SkeletonLoader type="table" :count="6" />
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="filteredLocations.length === 0" class="py-12 text-center text-zinc-400 text-xs">
+          <Boxes class="w-8 h-8 mx-auto mb-2 opacity-30 text-zinc-500" />
+          <p class="font-bold text-zinc-700 dark:text-zinc-300">Tidak ada area lokasi yang sesuai filter pencarian.</p>
+          <p class="text-[11px] mt-0.5">Coba sesuaikan kata kunci pencarian atau reset filter.</p>
+          <button 
+            v-if="isLocationFilterActive"
+            @click="resetLocationFilters"
+            class="mt-3 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-xs font-semibold hover:bg-zinc-200 cursor-pointer"
+          >
+            Reset Filter
+          </button>
+        </div>
+
+        <!-- Content: Mobile List Rows & Desktop Table List (Paginated) -->
+        <div v-else class="space-y-3">
+          <!-- MOBILE VIEW (< md): Dense Compact List Rows -->
+          <div class="md:hidden space-y-2">
+            <div 
+              v-for="loc in paginatedLocations" 
+              :key="loc.code"
+              @click="openLocationDetailModal(loc)"
+              class="glass-card p-2.5 space-y-1.5 transition-all cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 active:scale-[0.99] border-l-2"
+              :class="[
+                loc.occupancyPercent >= 90 ? 'border-l-rose-500' :
+                loc.occupancyPercent >= 75 ? 'border-l-amber-500' : 'border-l-emerald-500'
+              ]"
+            >
+              <!-- Baris 1: Kode, Nama Area, Badge Status -->
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="font-mono font-bold text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 shrink-0">
+                    {{ loc.code }}
+                  </span>
+                  <h3 class="text-xs font-bold text-zinc-900 dark:text-white truncate">
+                    {{ loc.name }}
+                  </h3>
+                  <span class="text-[9.5px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded-full shrink-0 hidden xs:inline">
+                    {{ loc.type }}
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-1 shrink-0">
+                  <span :class="['text-[9px] font-bold px-2 py-0.5 rounded-full border', loc.statusColor]">
+                    {{ loc.statusLabel }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Baris 2: Strip Beban Okupansi & Mini Visual Progress -->
+              <div class="flex items-center justify-between text-[11px] bg-zinc-50 dark:bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-200/60 dark:border-zinc-800 gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <div class="w-10 h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden shrink-0">
+                    <div 
+                      :class="[
+                        'h-full rounded-full',
+                        loc.occupancyPercent >= 90 ? 'bg-rose-500' :
+                        loc.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                      ]"
+                      :style="{ width: `${loc.occupancyPercent}%` }"
+                    ></div>
+                  </div>
+                  <span class="font-bold text-zinc-900 dark:text-zinc-100 font-mono text-xs">
+                    {{ loc.currentQty }}/{{ loc.maxCapacity }}
+                  </span>
+                  <span class="text-[10px] text-zinc-400">({{ loc.occupancyPercent }}%)</span>
+                </div>
+
+                <div class="flex items-center gap-2 text-[10px] text-zinc-500 shrink-0 font-medium">
+                  <span>{{ loc.items.length }} SKU</span>
+                  <span>•</span>
+                  <span>Sisa: {{ loc.availableCapacity }}</span>
+                </div>
+              </div>
+
+              <!-- Baris 3: Aksi Cepat Edit & Hapus -->
+              <div class="flex items-center justify-between pt-0.5">
+                <span class="text-[10px] text-zinc-400 truncate max-w-[150px]">
+                  {{ loc.keterangan || 'Tanpa catatan' }}
+                </span>
+
+                <div class="flex items-center gap-1" @click.stop>
+                  <button 
+                    @click="openLocationDetailModal(loc)"
+                    title="Lihat Item di Lokasi Ini"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye class="w-3 h-3" />
+                    <span>Detail</span>
+                  </button>
+                  <button 
+                    @click="openEditLocationModal(loc)"
+                    title="Edit Lokasi & Kapasitas"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <Pencil class="w-3 h-3" />
+                    <span>Edit</span>
+                  </button>
+                  <button 
+                    @click="deleteLocation(loc)"
+                    title="Hapus Lokasi"
+                    class="p-1 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DESKTOP VIEW (>= md): Tabel List Data Kompak -->
+          <div class="hidden md:block border border-zinc-200/80 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-zinc-100/70 dark:bg-zinc-800/70 border-b border-zinc-200 dark:border-zinc-700 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase select-none">
+                    <th @click="toggleLocationSort('code')" class="py-2.5 px-3 cursor-pointer hover:text-zinc-950 dark:hover:text-white transition-colors">
+                      <div class="flex items-center gap-1">
+                        <span>Kode Lokasi</span>
+                        <component :is="getLocationSortIcon('code')" class="w-3 h-3 text-zinc-400" />
+                      </div>
+                    </th>
+                    <th @click="toggleLocationSort('name')" class="py-2.5 px-3 cursor-pointer hover:text-zinc-950 dark:hover:text-white transition-colors">
+                      <div class="flex items-center gap-1">
+                        <span>Nama Area / Deskripsi</span>
+                        <component :is="getLocationSortIcon('name')" class="w-3 h-3 text-zinc-400" />
+                      </div>
+                    </th>
+                    <th class="py-2.5 px-3">Kategori</th>
+                    <th @click="toggleLocationSort('maxCapacity')" class="py-2.5 px-3 text-right cursor-pointer hover:text-zinc-950 dark:hover:text-white transition-colors">
+                      <div class="flex items-center justify-end gap-1">
+                        <span>Kapasitas Maks</span>
+                        <component :is="getLocationSortIcon('maxCapacity')" class="w-3 h-3 text-zinc-400" />
+                      </div>
+                    </th>
+                    <th @click="toggleLocationSort('currentQty')" class="py-2.5 px-3 text-right cursor-pointer hover:text-zinc-950 dark:hover:text-white transition-colors">
+                      <div class="flex items-center justify-end gap-1">
+                        <span>Terisi</span>
+                        <component :is="getLocationSortIcon('currentQty')" class="w-3 h-3 text-zinc-400" />
+                      </div>
+                    </th>
+                    <th @click="toggleLocationSort('occupancyPercent')" class="py-2.5 px-3 w-40 text-center cursor-pointer hover:text-zinc-950 dark:hover:text-white transition-colors">
+                      <div class="flex items-center justify-center gap-1">
+                        <span>Beban Okupansi</span>
+                        <component :is="getLocationSortIcon('occupancyPercent')" class="w-3 h-3 text-zinc-400" />
+                      </div>
+                    </th>
+                    <th @click="toggleLocationSort('itemsCount')" class="py-2.5 px-3 text-center cursor-pointer hover:text-zinc-950 dark:hover:text-white transition-colors">
+                      <div class="flex items-center justify-center gap-1">
+                        <span>SKU</span>
+                        <component :is="getLocationSortIcon('itemsCount')" class="w-3 h-3 text-zinc-400" />
+                      </div>
+                    </th>
+                    <th class="py-2.5 px-3 text-center">Status</th>
+                    <th class="py-2.5 px-3 text-center w-28">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/80 text-zinc-700 dark:text-zinc-300">
+                  <tr 
+                    v-for="loc in paginatedLocations" 
+                    :key="loc.code"
+                    @click="openLocationDetailModal(loc)"
+                    class="hover:bg-zinc-100/60 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors group"
+                    title="Klik baris untuk melihat detail isi barang di lokasi ini"
+                  >
+                    <!-- Kode -->
+                    <td class="py-2.5 px-3 font-mono">
+                      <span class="font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 px-2 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
+                        {{ loc.code }}
+                      </span>
+                    </td>
+
+                    <!-- Nama & Catatan -->
+                    <td class="py-2.5 px-3 min-w-0 max-w-[220px]">
+                      <strong class="font-bold text-zinc-900 dark:text-white block truncate group-hover:underline">
+                        {{ loc.name }}
+                      </strong>
+                      <span class="text-[10px] text-zinc-400 block truncate">{{ loc.keterangan || '-' }}</span>
+                    </td>
+
+                    <!-- Kategori -->
+                    <td class="py-2.5 px-3">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+                        {{ loc.type }}
+                      </span>
+                    </td>
+
+                    <!-- Kapasitas Maks -->
+                    <td class="py-2.5 px-3 text-right font-mono font-bold text-zinc-900 dark:text-white">
+                      {{ loc.maxCapacity }}
+                    </td>
+
+                    <!-- Terisi -->
+                    <td class="py-2.5 px-3 text-right font-mono font-extrabold text-zinc-950 dark:text-white">
+                      {{ loc.currentQty }}
+                    </td>
+
+                    <!-- Gauge Progress Bar Okupansi -->
+                    <td class="py-2.5 px-3">
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between text-[10px] font-mono">
+                          <span class="font-bold text-zinc-700 dark:text-zinc-300">{{ loc.occupancyPercent }}%</span>
+                          <span class="text-zinc-400">Sisa: {{ loc.availableCapacity }}</span>
+                        </div>
+                        <div class="w-full bg-zinc-200 dark:bg-zinc-700 h-1.5 rounded-full overflow-hidden">
+                          <div 
+                            :class="[
+                              'h-full rounded-full transition-all duration-300',
+                              loc.occupancyPercent >= 90 ? 'bg-rose-500' :
+                              loc.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                            ]"
+                            :style="{ width: `${loc.occupancyPercent}%` }"
+                          ></div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Jumlah SKU -->
+                    <td class="py-2.5 px-3 text-center">
+                      <span class="font-mono text-xs font-bold text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800">
+                        {{ loc.items.length }} SKU
+                      </span>
+                    </td>
+
+                    <!-- Status -->
+                    <td class="py-2.5 px-3 text-center">
+                      <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-full border', loc.statusColor]">
+                        {{ loc.statusLabel }}
+                      </span>
+                    </td>
+
+                    <!-- Aksi -->
+                    <td class="py-2.5 px-3 text-center" @click.stop>
+                      <div class="flex items-center justify-center gap-1">
+                        <button 
+                          @click="openLocationDetailModal(loc)"
+                          title="Lihat Rincian Barang"
+                          class="p-1 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
+                        >
+                          <Eye class="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          @click="openEditLocationModal(loc)"
+                          title="Edit Lokasi & Kapasitas"
+                          class="p-1 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-950/40 text-amber-600 transition-colors cursor-pointer"
+                        >
+                          <Pencil class="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          @click="deleteLocation(loc)"
+                          title="Hapus Lokasi"
+                          class="p-1 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-600 transition-colors cursor-pointer"
+                        >
+                          <Trash2 class="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination Component (Mendukung Navigasi Ribuan Baris Data) -->
+          <Pagination 
+            :current-page="locCurrentPage"
+            :page-size="locPageSize"
+            :total-items="filteredLocations.length"
+            @update:current-page="locCurrentPage = $event"
+            @update:page-size="locPageSize = $event"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- SHEET 3: LIST DOKUMEN MOVEMENT (PAGINATED & RESPONSIVE)         -->
+    <!-- ============================================================== -->
+    <div v-else-if="activeSubTab === 'movements'" class="space-y-4">
+      <div class="glass-card p-4 sm:p-5 space-y-4">
+        <!-- Toolbar & Header Ribbon -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-zinc-200/80 dark:border-zinc-800">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+              <FileText class="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+              <span>Daftar Dokumen Mutasi Internal</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 font-mono">
+                {{ filteredMovements.length }} Dokumen
+              </span>
+            </h2>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Riwayat dokumen pemindahan barang antar rak, approval, dan pelacakan audit stok.
+            </p>
+          </div>
+
+          <!-- Tombol Buat Lembar Kerja Baru -->
+          <button 
+            @click="openNewWorksheet"
+            class="flex items-center gap-1.5 px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-xs transition-all self-start sm:self-auto cursor-pointer"
+          >
+            <ArrowLeftRight class="w-3.5 h-3.5" />
+            <span>+ Buat Movement Worksheet</span>
+          </button>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <!-- Search Input -->
+          <div class="relative max-w-sm w-full">
+            <Search class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              v-model="movementSearch" 
+              type="text" 
+              placeholder="Cari no doc, operator, catatan..." 
+              class="w-full pl-8 pr-3 py-1.5 glass-input rounded-xl text-xs"
+            />
+          </div>
+
+          <!-- Status Filter Tabs -->
+          <div class="flex items-center gap-1 p-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-semibold self-start sm:self-auto border border-zinc-200 dark:border-zinc-700">
             <button 
               @click="movementStatusFilter = 'ALL'"
-              :class="['px-2.5 py-1 rounded-md transition-all', movementStatusFilter === 'ALL' ? 'bg-white dark:bg-slate-900 text-blue-600 shadow-xs' : 'text-slate-500']"
+              :class="['px-2.5 py-1 rounded-md transition-all cursor-pointer', movementStatusFilter === 'ALL' ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white']"
             >
               Semua
             </button>
             <button 
               @click="movementStatusFilter = 'DRAFT'"
-              :class="['px-2.5 py-1 rounded-md transition-all', movementStatusFilter === 'DRAFT' ? 'bg-white dark:bg-slate-900 text-amber-600 shadow-xs' : 'text-slate-500']"
+              :class="['px-2.5 py-1 rounded-md transition-all cursor-pointer', movementStatusFilter === 'DRAFT' ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white']"
             >
               Draft
             </button>
             <button 
               @click="movementStatusFilter = 'APPROVED'"
-              :class="['px-2.5 py-1 rounded-md transition-all', movementStatusFilter === 'APPROVED' ? 'bg-white dark:bg-slate-900 text-emerald-600 shadow-xs' : 'text-slate-500']"
+              :class="['px-2.5 py-1 rounded-md transition-all cursor-pointer', movementStatusFilter === 'APPROVED' ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-white']"
             >
               Disetujui
             </button>
           </div>
         </div>
 
-        <!-- Tombol Buat Lembar Kerja Baru -->
-        <button 
-          @click="openNewWorksheet"
-          class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition-all self-start sm:self-auto"
-        >
-          <ArrowLeftRight class="w-4 h-4" />
-          <span>+ Buat Movement Worksheet</span>
-        </button>
-      </div>
+        <!-- Empty State -->
+        <div v-if="filteredMovements.length === 0" class="py-12 text-center text-zinc-400 text-xs">
+          <FileText class="w-8 h-8 mx-auto mb-2 opacity-30 text-zinc-500" />
+          <p class="font-bold text-zinc-700 dark:text-zinc-300">Tidak ada dokumen perpindahan yang cocok.</p>
+          <p class="text-[11px] mt-0.5">Coba sesuaikan kata kunci pencarian atau buat dokumen baru.</p>
+        </div>
 
-      <!-- Tabel Dokumen Movement -->
-      <div class="glass-card overflow-hidden border border-slate-200/80 dark:border-slate-800">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
-                <th class="py-2.5 px-3">No. Dokumen</th>
-                <th class="py-2.5 px-3">Tanggal</th>
-                <th class="py-2.5 px-3">Operator / PIC</th>
-                <th class="py-2.5 px-3 text-center">Total Item</th>
-                <th class="py-2.5 px-3 text-right">Total Qty Pindah</th>
-                <th class="py-2.5 px-3">Status</th>
-                <th class="py-2.5 px-3">Catatan</th>
-                <th class="py-2.5 px-3 text-center w-36">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-              <tr v-if="filteredMovements.length === 0">
-                <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
-                  Tidak ada dokumen perpindahan yang cocok.
-                </td>
-              </tr>
-              <tr 
-                v-for="mov in filteredMovements" 
-                :key="mov.id"
-                class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
-              >
-                <!-- No Doc -->
-                <td class="py-2.5 px-3">
-                  <span class="font-mono font-bold text-slate-900 dark:text-white">
+        <!-- Content: Mobile View & Desktop Table -->
+        <div v-else class="space-y-3">
+          <!-- MOBILE VIEW (< md): Dense Rows -->
+          <div class="md:hidden space-y-2">
+            <div 
+              v-for="mov in paginatedMovements" 
+              :key="mov.id"
+              @click="openMovementDetailModal(mov)"
+              class="glass-card p-3 space-y-2 transition-all cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-700 active:scale-[0.99]"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="font-mono font-bold text-xs text-zinc-950 dark:text-white truncate">
                     {{ mov.docNo }}
                   </span>
-                </td>
-
-                <!-- Tanggal -->
-                <td class="py-2.5 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">
-                  {{ mov.tanggal }}
-                </td>
-
-                <!-- Operator -->
-                <td class="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200">
-                  {{ mov.operator || '-' }}
-                </td>
-
-                <!-- Total Lines -->
-                <td class="py-2.5 px-3 text-center font-bold">
-                  {{ mov.totalItems }} SKU
-                </td>
-
-                <!-- Total Qty -->
-                <td class="py-2.5 px-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
-                  {{ mov.totalQty }} unit
-                </td>
-
-                <!-- Status Badge -->
-                <td class="py-2.5 px-3">
                   <span :class="[
-                    'inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border',
+                    'text-[9px] font-bold px-2 py-0.2 rounded-full border',
                     mov.status === 'APPROVED' 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400' 
-                      : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                   ]">
-                    <Check v-if="mov.status === 'APPROVED'" class="w-3 h-3 text-emerald-600" />
-                    <Clock v-else class="w-3 h-3 text-amber-600" />
-                    <span>{{ mov.status === 'APPROVED' ? 'Disetujui' : 'Draft' }}</span>
+                    {{ mov.status === 'APPROVED' ? 'Disetujui' : 'Draft' }}
                   </span>
-                </td>
+                </div>
 
-                <!-- Catatan -->
-                <td class="py-2.5 px-3 text-[11px] text-slate-500 max-w-xs truncate">
+                <span class="text-[10px] text-zinc-400 font-mono">{{ mov.tanggal }}</span>
+              </div>
+
+              <div class="flex items-center justify-between text-xs bg-zinc-50 dark:bg-zinc-900/60 px-2.5 py-1.5 rounded-lg border border-zinc-200/60 dark:border-zinc-800">
+                <span class="text-zinc-500 text-[11px]">{{ mov.operator || 'Admin' }}</span>
+                <div class="flex items-center gap-2 font-mono">
+                  <span class="text-zinc-400 text-[10px]">{{ mov.totalItems }} SKU</span>
+                  <span>•</span>
+                  <strong class="font-extrabold text-zinc-950 dark:text-white">{{ mov.totalQty }} Unit</strong>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-0.5 text-xs">
+                <span class="text-[10px] text-zinc-400 truncate max-w-[150px]">
                   {{ mov.keterangan || '-' }}
-                </td>
+                </span>
 
-                <!-- Aksi -->
-                <td class="py-2.5 px-3 text-center">
-                  <div class="flex items-center justify-center gap-1.5">
-                    <!-- Detail View -->
-                    <button 
-                      @click="openMovementDetailModal(mov)"
-                      title="Lihat Detail Perpindahan"
-                      class="px-2 py-1 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 transition-colors"
-                    >
-                      Detail
-                    </button>
+                <div class="flex items-center gap-1" @click.stop>
+                  <button 
+                    @click="openMovementDetailModal(mov)"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 cursor-pointer"
+                  >
+                    Detail
+                  </button>
+                  <button 
+                    v-if="mov.status === 'DRAFT'"
+                    @click="approveMovementDoc(mov)"
+                    class="px-2 py-0.5 rounded-lg text-[10.5px] font-bold text-white bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 cursor-pointer"
+                  >
+                    Setujui
+                  </button>
+                  <button 
+                    v-if="mov.status === 'DRAFT'"
+                    @click="editDraftMovement(mov)"
+                    class="p-1 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
+                  >
+                    <Pencil class="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    v-if="mov.status === 'DRAFT'"
+                    @click="deleteDraftMovement(mov)"
+                    class="p-1 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                    <!-- Approve Action (Jika masih Draft) -->
-                    <button 
-                      v-if="mov.status === 'DRAFT'"
-                      @click="approveMovementDoc(mov)"
-                      title="Setujui dan Eksekusi Pindah Stok Sekarang"
-                      class="px-2 py-1 rounded-lg text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm transition-all flex items-center gap-1"
-                    >
-                      <Check class="w-3 h-3" />
-                      <span>Setujui</span>
-                    </button>
+          <!-- DESKTOP VIEW (>= md): Tabel Dokumen Movement -->
+          <div class="hidden md:block border border-zinc-200/80 dark:border-zinc-800 rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-zinc-100/70 dark:bg-zinc-800/70 border-b border-zinc-200 dark:border-zinc-700 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase select-none">
+                    <th class="py-2.5 px-3">No. Dokumen</th>
+                    <th class="py-2.5 px-3">Tanggal</th>
+                    <th class="py-2.5 px-3">Operator / PIC</th>
+                    <th class="py-2.5 px-3 text-center">Total Item</th>
+                    <th class="py-2.5 px-3 text-right">Total Qty Pindah</th>
+                    <th class="py-2.5 px-3 text-center">Status</th>
+                    <th class="py-2.5 px-3">Catatan</th>
+                    <th class="py-2.5 px-3 text-center w-36">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800/80 text-zinc-700 dark:text-zinc-300">
+                  <tr 
+                    v-for="mov in paginatedMovements" 
+                    :key="mov.id"
+                    @click="openMovementDetailModal(mov)"
+                    class="hover:bg-zinc-100/60 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors"
+                  >
+                    <!-- No Doc -->
+                    <td class="py-2.5 px-3 font-mono font-bold text-zinc-950 dark:text-white">
+                      {{ mov.docNo }}
+                    </td>
 
-                    <!-- Edit (Jika masih Draft) -->
-                    <button 
-                      v-if="mov.status === 'DRAFT'"
-                      @click="editDraftMovement(mov)"
-                      title="Edit Dokumen Draft"
-                      class="p-1 rounded-lg text-slate-500 hover:text-amber-600"
-                    >
-                      <Pencil class="w-3.5 h-3.5" />
-                    </button>
+                    <!-- Tanggal -->
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+                      {{ mov.tanggal }}
+                    </td>
 
-                    <!-- Lock Badge (Jika Approved) -->
-                    <span 
-                      v-else
-                      title="Dokumen telah disetujui & terkunci secara permanen"
-                      class="p-1 text-slate-400 inline-flex items-center"
-                    >
-                      <Lock class="w-3.5 h-3.5 text-slate-400" />
-                    </span>
+                    <!-- Operator -->
+                    <td class="py-2.5 px-3 font-medium text-zinc-900 dark:text-zinc-200">
+                      {{ mov.operator || '-' }}
+                    </td>
 
-                    <!-- Delete (Hanya Draft) -->
-                    <button 
-                      v-if="mov.status === 'DRAFT'"
-                      @click="deleteDraftMovement(mov)"
-                      title="Hapus Dokumen Draft"
-                      class="p-1 rounded-lg text-slate-500 hover:text-rose-600"
-                    >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                    <!-- Total Lines -->
+                    <td class="py-2.5 px-3 text-center font-bold">
+                      {{ mov.totalItems }} SKU
+                    </td>
+
+                    <!-- Total Qty -->
+                    <td class="py-2.5 px-3 text-right font-mono font-extrabold text-zinc-950 dark:text-white">
+                      {{ mov.totalQty }} unit
+                    </td>
+
+                    <!-- Status Badge -->
+                    <td class="py-2.5 px-3 text-center">
+                      <span :class="[
+                        'inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full border',
+                        mov.status === 'APPROVED' 
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                      ]">
+                        <Check v-if="mov.status === 'APPROVED'" class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        <Clock v-else class="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        <span>{{ mov.status === 'APPROVED' ? 'Disetujui' : 'Draft' }}</span>
+                      </span>
+                    </td>
+
+                    <!-- Catatan -->
+                    <td class="py-2.5 px-3 text-[11px] text-zinc-500 max-w-xs truncate">
+                      {{ mov.keterangan || '-' }}
+                    </td>
+
+                    <!-- Aksi -->
+                    <td class="py-2.5 px-3 text-center" @click.stop>
+                      <div class="flex items-center justify-center gap-1.5">
+                        <button 
+                          @click="openMovementDetailModal(mov)"
+                          title="Lihat Detail Perpindahan"
+                          class="px-2 py-1 rounded-lg text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                        >
+                          Detail
+                        </button>
+
+                        <!-- Tombol Cepat Cetak PDF & Excel -->
+                        <button 
+                          @click="printMovementWorksheetDocument(mov, mov.items)"
+                          title="Cetak Dokumen / Simpan PDF"
+                          class="p-1 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
+                        >
+                          <Printer class="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          @click="exportMovementWorksheetExcel(mov, mov.items)"
+                          title="Ekspor Dokumen ke Excel (.xlsx)"
+                          class="p-1 rounded-lg text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer transition-colors"
+                        >
+                          <FileSpreadsheet class="w-3.5 h-3.5" />
+                        </button>
+
+                        <button 
+                          v-if="mov.status === 'DRAFT'"
+                          @click="approveMovementDoc(mov)"
+                          title="Setujui dan Eksekusi Pindah Stok Sekarang"
+                          class="px-2 py-1 rounded-lg text-[11px] font-bold text-white bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <Check class="w-3 h-3" />
+                          <span>Setujui</span>
+                        </button>
+
+                        <button 
+                          v-if="mov.status === 'DRAFT'"
+                          @click="editDraftMovement(mov)"
+                          title="Edit Dokumen Draft"
+                          class="p-1 rounded-lg text-zinc-500 hover:text-amber-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                        >
+                          <Pencil class="w-3.5 h-3.5" />
+                        </button>
+
+                        <span 
+                          v-else
+                          title="Dokumen telah disetujui & terkunci permanen"
+                          class="p-1 text-zinc-400 inline-flex items-center"
+                        >
+                          <Lock class="w-3.5 h-3.5" />
+                        </span>
+
+                        <button 
+                          v-if="mov.status === 'DRAFT'"
+                          @click="deleteDraftMovement(mov)"
+                          title="Hapus Dokumen Draft"
+                          class="p-1 rounded-lg text-zinc-500 hover:text-rose-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+                        >
+                          <Trash2 class="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagination Component -->
+          <Pagination 
+            :current-page="movCurrentPage"
+            :page-size="movPageSize"
+            :total-items="filteredMovements.length"
+            @update:current-page="movCurrentPage = $event"
+            @update:page-size="movPageSize = $event"
+          />
         </div>
       </div>
     </div>
 
     <!-- ============================================================== -->
+    <!-- ============================================================== -->
     <!-- SHEET 4: MOVEMENT WORKSHEET (LEMBAR KERJA MUTASI MULTI-ITEM)   -->
     <!-- ============================================================== -->
-    <div v-else-if="activeSubTab === 'worksheet'" class="space-y-5">
+    <div v-else-if="activeSubTab === 'worksheet'" class="space-y-4">
       <!-- Worksheet Header Form Card -->
-      <div class="glass-card p-4 sm:p-5 space-y-4 border-l-4 border-l-blue-600">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+      <div class="glass-card p-4 sm:p-5 space-y-4 border-l-2 border-l-zinc-950 dark:border-l-white">
+        <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
           <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-600 flex items-center justify-center font-bold">
+            <div class="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center font-bold">
               <ArrowLeftRight class="w-4 h-4" />
             </div>
             <div>
-              <h2 class="text-sm font-bold text-slate-900 dark:text-white">
+              <h2 class="text-sm font-bold text-zinc-950 dark:text-white">
                 {{ editingMovementId ? 'Edit Movement Worksheet' : 'Lembar Kerja Pemindahan Barang (Movement Worksheet)' }}
               </h2>
-              <p class="text-[11px] text-slate-400">Pindahkan item dari satu lokasi ke lokasi lain secara spesifik.</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Pindahkan stok item dari satu lokasi ke lokasi lain secara spesifik.</p>
             </div>
           </div>
           <button 
             @click="switchSheet('movements')"
-            class="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white px-2.5 py-1 rounded-lg border hover:bg-slate-100 dark:hover:bg-slate-800"
+            class="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white px-2.5 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
           >
             &larr; Kembali ke List
           </button>
@@ -827,17 +1349,17 @@
         <!-- Document Meta Inputs -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">No. Dokumen Movement</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">No. Dokumen Movement</label>
             <input 
               v-model="worksheetHeader.docNo" 
               type="text" 
               readonly
-              class="w-full px-3 py-1.5 glass-input rounded-xl font-mono font-bold bg-slate-100/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300"
+              class="w-full px-3 py-1.5 glass-input rounded-xl font-mono font-bold bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300"
             />
           </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Pemindahan</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Tanggal Pemindahan</label>
             <input 
               v-model="worksheetHeader.tanggal" 
               type="date" 
@@ -846,7 +1368,7 @@
           </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Operator / Penanggung Jawab</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Operator / Penanggung Jawab</label>
             <input 
               v-model="worksheetHeader.operator" 
               type="text" 
@@ -856,7 +1378,7 @@
           </div>
 
           <div class="sm:col-span-3">
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Keterangan / Alasan Pemindahan</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Keterangan / Alasan Pemindahan</label>
             <input 
               v-model="worksheetHeader.keterangan" 
               type="text" 
@@ -869,22 +1391,26 @@
 
       <!-- Section Input Baris Item Baru dengan Smart Search & Deteksi Lokasi Asal -->
       <div class="glass-card p-4 sm:p-5 space-y-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-          <Plus class="w-3.5 h-3.5 text-blue-600" />
+        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+          <Plus class="w-3.5 h-3.5 text-zinc-900 dark:text-zinc-100" />
           <span>Tambah Item ke Lembar Kerja</span>
         </h3>
 
         <!-- Smart Search SKU / Nama Barang -->
         <div class="relative">
-          <label class="block font-semibold text-xs text-slate-700 dark:text-slate-300 mb-1">
+          <label class="block font-semibold text-xs text-zinc-700 dark:text-zinc-300 mb-1">
             Cari Barang (Smart Search)
           </label>
           <div class="relative">
-            <Search class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search class="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               ref="smartSearchInputRef"
               v-model="typedItemSearch" 
               @focus="isSmartDropdownOpen = true"
+              @keydown.down.prevent="navigateItemSuggestions(1)"
+              @keydown.up.prevent="navigateItemSuggestions(-1)"
+              @keydown.enter.prevent="selectHighlightedItem"
+              @keydown.esc="isSmartDropdownOpen = false"
               type="text" 
               placeholder="Ketik kode SKU (misal: BRG-001) atau nama barang..." 
               class="w-full pl-9 pr-3 py-2 glass-input rounded-xl text-xs font-medium"
@@ -894,23 +1420,41 @@
           <!-- Dropdown Smart Suggestions -->
           <div 
             v-if="isSmartDropdownOpen && matchingItemSuggestions.length > 0"
-            class="absolute z-30 left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
+            class="absolute z-30 left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800"
           >
             <div 
-              v-for="item in matchingItemSuggestions" 
+              v-for="(item, sIdx) in matchingItemSuggestions" 
               :key="item.uniqCode"
+              @mouseenter="highlightedItemIndex = sIdx"
               @mousedown="selectItemForMovement(item)"
-              class="p-2.5 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer flex items-center justify-between text-xs transition-colors"
+              :class="[
+                'p-2.5 cursor-pointer flex items-center justify-between text-xs transition-colors',
+                highlightedItemIndex === sIdx 
+                  ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 font-medium' 
+                  : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
+              ]"
             >
               <div class="min-w-0">
-                <span class="font-mono font-bold text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300 mr-1.5">
+                <span 
+                  :class="[
+                    'font-mono font-bold text-[10px] px-1.5 py-0.5 rounded mr-1.5 border',
+                    highlightedItemIndex === sIdx
+                      ? 'bg-zinc-800 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900 border-zinc-700 dark:border-zinc-300'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
+                  ]"
+                >
                   {{ item.uniqCode }}
                 </span>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ item.deskripsi }}</span>
+                <span class="font-semibold">{{ item.deskripsi }}</span>
               </div>
               <div class="text-right shrink-0 ml-3">
-                <span class="text-[11px] font-bold text-slate-900 dark:text-white">
-                  Stok Total: {{ item.currentStock }} {{ item.satuan }}
+                <span 
+                  :class="[
+                    'text-[11px] font-bold font-mono',
+                    highlightedItemIndex === sIdx ? 'text-white dark:text-zinc-950' : 'text-zinc-950 dark:text-white'
+                  ]"
+                >
+                  Stok: {{ item.currentStock }} {{ item.satuan }}
                 </span>
               </div>
             </div>
@@ -920,24 +1464,24 @@
         <!-- Banner Deteksi Lokasi Fisik Barang Terpilih -->
         <div 
           v-if="selectedItemObj" 
-          class="p-3.5 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900/60 space-y-2"
+          class="p-3.5 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-2"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="font-mono font-bold text-xs bg-blue-600 text-white px-2 py-0.5 rounded">
+              <span class="font-mono font-bold text-xs bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-2 py-0.5 rounded">
                 {{ selectedItemObj.uniqCode }}
               </span>
-              <strong class="text-xs sm:text-sm text-slate-900 dark:text-white">{{ selectedItemObj.deskripsi }}</strong>
-              <span class="text-xs text-slate-500">({{ selectedItemObj.satuan }})</span>
+              <strong class="text-xs sm:text-sm text-zinc-950 dark:text-white">{{ selectedItemObj.deskripsi }}</strong>
+              <span class="text-xs text-zinc-400">({{ selectedItemObj.satuan }})</span>
             </div>
-            <button @click="clearSelectedItem" class="text-xs text-slate-400 hover:text-slate-600">
+            <button @click="clearSelectedItem" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer">
               <X class="w-4 h-4" />
             </button>
           </div>
 
           <!-- Visual Deteksi Lokasi Item -->
           <div class="pt-1">
-            <span class="text-[11px] font-bold text-blue-900 dark:text-blue-300 block mb-1">
+            <span class="text-[11px] font-bold text-zinc-700 dark:text-zinc-300 block mb-1">
               📍 Terdeteksi Tersimpan di Lokasi Berikut:
             </span>
             <div v-if="selectedItemLocations.length === 0" class="text-xs text-rose-600 font-semibold">
@@ -946,18 +1490,18 @@
             <div v-else class="flex flex-wrap gap-2">
               <div 
                 v-for="loc in selectedItemLocations" 
-                :key="loc.locationCode"
+                :key="loc.locationCode" 
                 @click="draftFromLocation = loc.locationCode"
                 :class="[
                   'px-3 py-1.5 rounded-lg border text-xs cursor-pointer transition-all flex items-center gap-2',
                   draftFromLocation === loc.locationCode 
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
-                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                    ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-zinc-950 dark:border-white shadow-xs' 
+                    : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400'
                 ]"
               >
                 <span class="font-mono font-bold">{{ loc.locationCode }}</span>
                 <span class="text-[11px] opacity-90">{{ loc.locationName }}</span>
-                <span class="font-black px-1.5 py-0.2 rounded bg-black/10 dark:bg-white/10 text-[10px]">
+                <span class="font-mono font-bold px-1.5 py-0.2 rounded bg-black/10 dark:bg-white/10 text-[10px]">
                   {{ loc.qty }} {{ selectedItemObj.satuan }}
                 </span>
               </div>
@@ -966,56 +1510,42 @@
         </div>
 
         <!-- Form Pemilihan From, To, Qty, dan Indikator Kapasitas Maksimal -->
-        <div v-if="selectedItemObj && selectedItemLocations.length > 0" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs pt-1">
-          <!-- From Location -->
-          <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+        <div v-if="selectedItemObj && selectedItemLocations.length > 0" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs pt-1">
+          <!-- From Location (Smart Search Dropdown) -->
+          <div class="sm:col-span-3">
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               Dari Lokasi Asal (From)
             </label>
-            <select 
+            <SmartSearchSelect 
               v-model="draftFromLocation"
-              class="w-full px-3 py-2 glass-input rounded-xl font-medium"
-            >
-              <option value="" disabled>Pilih lokasi asal...</option>
-              <option 
-                v-for="loc in selectedItemLocations" 
-                :key="loc.locationCode" 
-                :value="loc.locationCode"
-              >
-                {{ loc.locationCode }} (Tersisa: {{ getAvailableInLocation(loc.locationCode) }} {{ selectedItemObj.satuan }})
-              </option>
-            </select>
-            <span v-if="selectedFromLocInfo" class="text-[10px] text-slate-400 mt-0.5 block">
-              Maksimum bisa dipindah saat ini: <strong>{{ availableToMove }} {{ selectedItemObj.satuan }}</strong>
+              :options="fromLocationOptions"
+              placeholder="Pilih lokasi asal..."
+              search-placeholder="Cari lokasi asal..."
+            />
+            <span v-if="selectedFromLocInfo" class="text-[10px] text-zinc-400 mt-0.5 block font-mono">
+              Maks: <strong class="text-zinc-700 dark:text-zinc-300 font-mono">{{ availableToMove }} {{ selectedItemObj?.satuan }}</strong>
             </span>
           </div>
 
-          <!-- To Location -->
-          <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <!-- To Location (Smart Search Dropdown) -->
+          <div class="sm:col-span-3">
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               Ke Lokasi Tujuan (To)
             </label>
-            <select 
+            <SmartSearchSelect 
               v-model="draftToLocation"
-              class="w-full px-3 py-2 glass-input rounded-xl font-medium"
-            >
-              <option value="" disabled>Pilih lokasi tujuan...</option>
-              <option 
-                v-for="loc in destinationLocations" 
-                :key="loc.code" 
-                :value="loc.code"
-              >
-                {{ loc.code }} - {{ loc.name }} (Sisa: {{ loc.availableCapacity }})
-              </option>
-            </select>
-            <span v-if="selectedToLocInfo" class="text-[10px] text-slate-400 mt-0.5 block">
+              :options="destinationLocationOptions"
+              placeholder="Pilih lokasi/rak tujuan..."
+              search-placeholder="Cari kode rak atau nama area..."
+            />
+            <span v-if="selectedToLocInfo" class="text-[10px] text-zinc-400 mt-0.5 block font-mono">
               Kapasitas: {{ selectedToLocInfo.currentQty }}/{{ selectedToLocInfo.maxCapacity }} unit
             </span>
           </div>
 
           <!-- Qty Pindah -->
-          <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               Qty Dipindahkan
             </label>
             <input 
@@ -1023,21 +1553,34 @@
               type="number" 
               min="1" 
               :max="availableToMove || 999"
-              class="w-full px-3 py-2 glass-input rounded-xl font-bold font-mono text-blue-600"
+              class="w-full px-3 py-1.5 glass-input rounded-xl font-bold font-mono text-zinc-950 dark:text-zinc-100"
             />
-            <span v-if="selectedItemObj" class="text-[10px] text-slate-400 mt-0.5 block">
+            <span v-if="selectedItemObj" class="text-[10px] text-zinc-400 mt-0.5 block">
               Satuan: {{ selectedItemObj.satuan }}
             </span>
           </div>
 
+          <!-- Catatan Baris -->
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+              Catatan Baris
+            </label>
+            <input 
+              v-model="draftItemNote" 
+              type="text" 
+              placeholder="Catatan..."
+              class="w-full px-3 py-1.5 glass-input rounded-xl text-xs"
+            />
+          </div>
+
           <!-- Tombol Tambah ke Tabel -->
-          <div class="flex items-end">
+          <div class="sm:col-span-2 flex items-end">
             <button 
               @click="addItemRowToWorksheet"
-              class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-md shadow-blue-600/20 transition-all flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs"
             >
-              <Plus class="w-4 h-4" />
-              <span>+ Tambah Baris</span>
+              <Plus class="w-4 h-4 shrink-0" />
+              <span>+ Tambah</span>
             </button>
           </div>
         </div>
@@ -1048,8 +1591,8 @@
           :class="[
             'p-3 rounded-xl border text-xs transition-all space-y-1',
             isToOverCapacity 
-              ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-300 text-rose-800 dark:text-rose-300' 
-              : 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 text-emerald-800 dark:text-emerald-300'
+              ? 'bg-rose-500/10 border-rose-500/30 text-rose-800 dark:text-rose-300' 
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
           ]"
         >
           <div class="flex items-center justify-between font-bold">
@@ -1074,77 +1617,108 @@
       </div>
 
       <!-- Tabel Daftar Item Multi-Item dalam Dokumen Worksheet -->
-      <div class="glass-card overflow-hidden border border-slate-200/80 dark:border-slate-800">
-        <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <div class="glass-card overflow-hidden border border-zinc-200/80 dark:border-zinc-800">
+        <div class="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
           <div>
-            <h3 class="text-xs font-bold text-slate-900 dark:text-white">
+            <h3 class="text-xs font-bold text-zinc-950 dark:text-white">
               Daftar Barang yang Dipindahkan ({{ worksheetItems.length }} Baris)
             </h3>
-            <p class="text-[11px] text-slate-400">Anda dapat memindahkan banyak barang dari lokasi berbeda ke tujuan berbeda dalam 1 dokumen ini.</p>
+            <p class="text-[11px] text-zinc-400">Anda dapat memindahkan banyak barang dari lokasi berbeda ke tujuan berbeda dalam 1 dokumen ini.</p>
           </div>
-          <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400 font-mono">
+          <span class="text-xs font-extrabold text-zinc-950 dark:text-white font-mono">
             Total Qty: {{ totalWorksheetQty }} Unit
           </span>
         </div>
 
         <div class="overflow-x-auto touch-pan-x">
-          <table class="min-w-[660px] w-full text-left border-collapse text-xs">
+          <table class="min-w-[840px] w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-100/70 dark:bg-slate-800/70 border-b border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase select-none">
+              <tr class="bg-zinc-100/70 dark:bg-zinc-800/70 border-b border-zinc-200/80 dark:border-zinc-800 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase select-none">
                 <th class="py-2.5 px-3 text-center w-12">No</th>
-                <th class="py-2.5 px-3">Kode & Nama Barang</th>
-                <th class="py-2.5 px-3">Dari (From)</th>
-                <th class="py-2.5 px-3 text-center w-8">&rarr;</th>
-                <th class="py-2.5 px-3">Ke (To)</th>
-                <th class="py-2.5 px-3 text-right">Qty Pindah</th>
-                <th class="py-2.5 px-3">Catatan Baris</th>
+                <th class="py-2.5 px-3 min-w-[200px]">Kode & Nama Barang</th>
+                <th class="py-2.5 px-3 w-32">Dari (From)</th>
+                <th class="py-2.5 px-1 text-center w-8">&rarr;</th>
+                <th class="py-2.5 px-3 min-w-[200px]">Ke (To)</th>
+                <th class="py-2.5 px-3 text-right w-32">Qty Pindah</th>
+                <th class="py-2.5 px-3 min-w-[160px]">Catatan Baris</th>
                 <th class="py-2.5 px-3 text-center w-16">Aksi</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300">
               <tr v-if="worksheetItems.length === 0">
-                <td colspan="8" class="py-10 text-center text-slate-400 text-xs">
+                <td colspan="8" class="py-10 text-center text-zinc-400 text-xs">
                   Belum ada item dalam lembar kerja ini. Gunakan kolom Smart Search di atas untuk menambahkan.
                 </td>
               </tr>
               <tr 
                 v-for="(item, idx) in worksheetItems" 
                 :key="idx"
-                class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40"
               >
-                <td class="py-2.5 px-3 text-center text-slate-400 font-mono">{{ idx + 1 }}</td>
-                <td class="py-2.5 px-3">
-                  <span class="font-mono font-bold text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded mr-1">
-                    {{ item.uniqCode }}
-                  </span>
-                  <span class="font-semibold text-slate-900 dark:text-white">{{ item.deskripsi }}</span>
+                <!-- 1. No -->
+                <td class="py-2.5 px-3 text-center text-zinc-400 font-mono w-12">{{ idx + 1 }}</td>
+                
+                <!-- 2. Kode & Nama Barang -->
+                <td class="py-2.5 px-3 min-w-[200px]">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-mono font-bold text-[10px] bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100">
+                      {{ item.uniqCode }}
+                    </span>
+                    <span class="font-semibold text-zinc-900 dark:text-white">{{ item.deskripsi }}</span>
+                  </div>
                 </td>
-                <td class="py-2.5 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">
-                  <span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 text-amber-700 dark:text-amber-300">
+                
+                <!-- 3. Dari (From) -->
+                <td class="py-2.5 px-3 w-32 font-mono font-bold">
+                  <span class="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 inline-block">
                     {{ item.fromLocation }}
                   </span>
                 </td>
-                <td class="py-2.5 px-3 text-center text-slate-400 font-bold">&rarr;</td>
-                <td class="py-2.5 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">
-                  <span class="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 text-emerald-700 dark:text-emerald-300">
-                    {{ item.toLocation }}
-                  </span>
+                
+                <!-- 4. Panah (->) -->
+                <td class="py-2.5 px-1 text-center font-bold text-zinc-400 dark:text-zinc-500 w-8 select-none">
+                  &rarr;
                 </td>
-                <td class="py-2.5 px-3 text-right font-mono font-black text-blue-600 dark:text-blue-400">
-                  {{ item.qty }} {{ item.satuan }}
+                
+                <!-- 5. Ke (To) -->
+                <td class="py-2.5 px-3 min-w-[200px]">
+                  <SmartSearchSelect 
+                    v-model="item.toLocation"
+                    :options="allLocationOptions.filter(l => l.value !== item.fromLocation)"
+                    placeholder="Pilih rak tujuan..."
+                    search-placeholder="Cari rak tujuan..."
+                  />
                 </td>
-                <td class="py-2.5 px-3 text-[11px] text-slate-500">
+                
+                <!-- 6. Qty Pindah -->
+                <td class="py-2.5 px-3 text-right font-mono font-black text-zinc-950 dark:text-white w-32">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <input 
+                      v-model.number="item.qty" 
+                      type="number" 
+                      min="1" 
+                      class="w-18 px-2 py-1 glass-input rounded-lg text-right font-bold font-mono text-xs focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white" 
+                    />
+                    <span class="text-[10px] text-zinc-400 font-normal shrink-0">{{ item.satuan }}</span>
+                  </div>
+                </td>
+                
+                <!-- 7. Catatan Baris -->
+                <td class="py-2.5 px-3 min-w-[160px] text-[11px] text-zinc-500">
                   <input 
                     v-model="item.keterangan" 
                     type="text" 
-                    placeholder="Catatan..." 
-                    class="w-full px-2 py-1 glass-input rounded text-xs"
+                    placeholder="Catatan perpindahan..." 
+                    class="w-full px-2 py-1 glass-input rounded text-xs focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white"
                   />
                 </td>
-                <td class="py-2.5 px-3 text-center">
+                
+                <!-- 8. Aksi -->
+                <td class="py-2.5 px-3 text-center w-16">
                   <button 
                     @click="removeWorksheetItem(idx)"
-                    class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                    class="p-1 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
+                    title="Hapus baris ini"
                   >
                     <Trash2 class="w-3.5 h-3.5" />
                   </button>
@@ -1154,25 +1728,49 @@
           </table>
         </div>
 
-        <!-- Footer Actions Worksheet: Simpan Draft & Setujui (Approve) -->
-        <div class="p-4 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <!-- Footer Actions Worksheet: Cetak, Ekspor, Simpan Draft & Setujui -->
+        <div class="p-4 bg-zinc-50/80 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
           <button 
             type="button" 
             @click="switchSheet('movements')"
-            class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            class="px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 rounded-xl transition-colors cursor-pointer"
           >
             Batal
           </button>
 
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Cetak / Simpan PDF Lembar Kerja -->
+            <button 
+              type="button" 
+              @click="printMovementWorksheetDocument(worksheetHeader, worksheetItems)"
+              :disabled="worksheetItems.length === 0"
+              class="px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 bg-white hover:bg-zinc-100 dark:bg-zinc-850 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              title="Cetak instruksi kerja mutasi atau simpan PDF"
+            >
+              <Printer class="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
+              <span>Cetak / PDF</span>
+            </button>
+
+            <!-- Ekspor Excel Lembar Kerja -->
+            <button 
+              type="button" 
+              @click="exportMovementWorksheetExcel(worksheetHeader, worksheetItems)"
+              :disabled="worksheetItems.length === 0"
+              class="px-3.5 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 rounded-xl shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              title="Ekspor Lembar Kerja ke Excel (.xlsx)"
+            >
+              <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Ekspor Excel</span>
+            </button>
+
             <!-- Simpan Draft -->
             <button 
               type="button" 
               @click="saveWorksheet(false)"
               :disabled="worksheetItems.length === 0"
-              class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 rounded-xl shadow-xs transition-colors disabled:opacity-50"
+              class="px-4 py-2 text-xs font-bold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 rounded-xl shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
             >
-              💾 Simpan sebagai Draft
+              💾 Simpan Draf
             </button>
 
             <!-- Setujui & Eksekusi Langsung -->
@@ -1180,10 +1778,10 @@
               type="button" 
               @click="saveWorksheet(true)"
               :disabled="worksheetItems.length === 0"
-              class="px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              class="px-5 py-2 text-xs font-bold text-white bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 rounded-xl shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               <Check class="w-4 h-4" />
-              <span>✅ Setujui & Pindah Stok Sekarang</span>
+              <span>Setujui & Pindah Sekarang</span>
             </button>
           </div>
         </div>
@@ -1191,29 +1789,29 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- MODAL 1: TAMBAH / EDIT MASTER LOKASI (LIGHT ACCENT)            -->
+    <!-- MODAL 1: TAMBAH / EDIT MASTER LOKASI (MONOCHROME MINIMALIS)    -->
     <!-- ============================================================== -->
     <div 
       v-if="isLocationModalOpen" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 transition-all"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 transition-all"
     >
-      <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col">
-        <!-- Top Light Gradient Bar -->
-        <div class="h-1.5 w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-teal-400"></div>
+      <div class="bg-white dark:bg-zinc-900 w-full max-w-md rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col">
+        <!-- Top Subtle Strip -->
+        <div class="h-1 w-full bg-zinc-950 dark:bg-zinc-100"></div>
 
-        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Boxes class="w-4 h-4 text-blue-600" />
-            <span>{{ isEditingLocation ? 'Edit Area / Rak Lokasi' : 'Tambah Area / Rak Baru' }}</span>
+        <div class="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+          <h3 class="text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+            <Boxes class="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
+            <span>{{ isEditingLocation ? 'Edit Master Lokasi & Rak' : 'Tambah Area / Rak Baru' }}</span>
           </h3>
-          <button @click="isLocationModalOpen = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <button @click="isLocationModalOpen = false" class="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer">
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <form @submit.prevent="saveLocationMaster" class="p-5 space-y-3.5 text-xs">
           <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kode Lokasi (Unik)</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Kode Lokasi (Unik)</label>
             <input 
               v-model="locationForm.code" 
               :readonly="isEditingLocation"
@@ -1225,7 +1823,7 @@
           </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Area / Deskripsi</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Nama Area / Deskripsi</label>
             <input 
               v-model="locationForm.name" 
               type="text" 
@@ -1237,10 +1835,10 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kategori / Tipe</label>
+              <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Kategori / Tipe</label>
               <select 
                 v-model="locationForm.type" 
-                class="w-full px-3 py-2 glass-input rounded-xl"
+                class="w-full px-3 py-2 glass-input rounded-xl font-medium"
               >
                 <option value="Fast Picking">Fast Picking</option>
                 <option value="Standard Storage">Standard Storage</option>
@@ -1252,20 +1850,20 @@
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kapasitas Maksimal (Unit)</label>
+              <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Kapasitas Maksimal (Unit)</label>
               <input 
                 v-model.number="locationForm.maxCapacity" 
                 type="number" 
                 min="1" 
                 required
                 placeholder="200" 
-                class="w-full px-3 py-2 glass-input rounded-xl font-bold font-mono text-blue-600"
+                class="w-full px-3 py-2 glass-input rounded-xl font-bold font-mono text-zinc-950 dark:text-zinc-100"
               />
             </div>
           </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Keterangan Tambahan</label>
+            <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Keterangan Tambahan</label>
             <input 
               v-model="locationForm.keterangan" 
               type="text" 
@@ -1274,17 +1872,17 @@
             />
           </div>
 
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+          <div class="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-end gap-2">
             <button 
               type="button" 
               @click="isLocationModalOpen = false" 
-              class="px-3.5 py-2 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200"
+              class="px-3.5 py-2 rounded-xl text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
             >
               Batal
             </button>
             <button 
               type="submit" 
-              class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold"
+              class="px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-bold cursor-pointer transition-all"
             >
               Simpan Area
             </button>
@@ -1294,76 +1892,199 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- MODAL 2: DETAIL ISI BARANG DI DALAM LOKASI (LIGHT ACCENT)      -->
+    <!-- MODAL 2: DETAIL ISI BARANG DI DALAM LOKASI (MONOCHROME MINIMALIS) -->
     <!-- ============================================================== -->
     <div 
       v-if="selectedLocationDetail" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 transition-all"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 transition-all"
     >
-      <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]">
-        <div class="h-1.5 w-full bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+      <div class="bg-white dark:bg-zinc-900 w-full max-w-xl rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[90vh]">
+        <!-- Top Subtle Strip -->
+        <div class="h-1 w-full bg-zinc-950 dark:bg-zinc-100"></div>
 
-        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div>
-            <span class="font-mono font-bold text-xs bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 px-2 py-0.5 rounded">
-              {{ selectedLocationDetail.code }}
-            </span>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white mt-1">{{ selectedLocationDetail.name }}</h3>
-            <p class="text-[11px] text-slate-400">
-              Beban Terisi: {{ selectedLocationDetail.currentQty }} / {{ selectedLocationDetail.maxCapacity }} unit ({{ selectedLocationDetail.occupancyPercent }}%)
+        <!-- Header Modal -->
+        <div class="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-start justify-between gap-3">
+          <div class="space-y-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-mono font-bold text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-zinc-100 px-2.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">
+                {{ selectedLocationDetail.code }}
+              </span>
+              <span class="text-[10px] font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700">
+                {{ selectedLocationDetail.type }}
+              </span>
+              <span :class="['text-[9.5px] font-bold px-2 py-0.5 rounded-full border', selectedLocationDetail.statusColor]">
+                {{ selectedLocationDetail.statusLabel }}
+              </span>
+            </div>
+
+            <h3 class="text-base font-bold text-zinc-950 dark:text-white truncate">
+              {{ selectedLocationDetail.name }}
+            </h3>
+            <p v-if="selectedLocationDetail.keterangan" class="text-[11px] text-zinc-500 dark:text-zinc-400">
+              {{ selectedLocationDetail.keterangan }}
             </p>
           </div>
-          <button @click="selectedLocationDetail = null" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+
+          <button 
+            @click="selectedLocationDetail = null" 
+            class="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 shrink-0 cursor-pointer"
+          >
             <X class="w-4 h-4" />
           </button>
         </div>
 
-        <div class="p-5 overflow-y-auto space-y-3 text-xs">
-          <h4 class="font-bold text-slate-800 dark:text-slate-200">Daftar SKU Tersimpan di Area Ini:</h4>
-          <div v-if="selectedLocationDetail.items.length === 0" class="py-6 text-center text-slate-400">
-            Area ini saat ini kosong.
-          </div>
-          <div v-else class="divide-y divide-slate-100 dark:divide-slate-800 border rounded-xl overflow-hidden">
-            <div 
-              v-for="item in selectedLocationDetail.items" 
-              :key="item.itemCode"
-              class="p-2.5 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40"
-            >
-              <div>
-                <span class="font-mono font-bold text-[10px] bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded mr-1">
-                  {{ item.itemCode }}
-                </span>
-                <strong class="text-slate-900 dark:text-white">{{ item.deskripsi }}</strong>
+        <!-- Body Modal -->
+        <div class="p-5 overflow-y-auto space-y-4 text-xs">
+          <!-- 4 Mini KPI Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800">
+              <span class="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 block">Kapasitas Maks</span>
+              <strong class="font-mono text-sm font-bold text-zinc-950 dark:text-white block mt-0.5">
+                {{ selectedLocationDetail.maxCapacity }}
+              </strong>
+              <span class="text-[9.5px] text-zinc-400">Unit</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800">
+              <span class="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 block">Beban Terisi</span>
+              <strong class="font-mono text-sm font-extrabold text-zinc-950 dark:text-white block mt-0.5">
+                {{ selectedLocationDetail.currentQty }}
+              </strong>
+              <span class="text-[9.5px] text-zinc-400">Unit</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800">
+              <span class="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 block">Sisa Ruang</span>
+              <strong class="font-mono text-sm font-bold text-zinc-950 dark:text-white block mt-0.5">
+                {{ selectedLocationDetail.availableCapacity }}
+              </strong>
+              <span class="text-[9.5px] text-zinc-400">Unit</span>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800 flex flex-col justify-between">
+              <span class="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 block">Okupansi</span>
+              <div class="mt-0.5">
+                <strong class="font-mono text-sm font-extrabold text-zinc-950 dark:text-white">
+                  {{ selectedLocationDetail.occupancyPercent }}%
+                </strong>
+                <div class="w-full bg-zinc-200 dark:bg-zinc-700 h-1.5 rounded-full overflow-hidden mt-1">
+                  <div 
+                    :class="[
+                      'h-full rounded-full',
+                      selectedLocationDetail.occupancyPercent >= 90 ? 'bg-rose-500' :
+                      selectedLocationDetail.occupancyPercent >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
+                    ]"
+                    :style="{ width: `${selectedLocationDetail.occupancyPercent}%` }"
+                  ></div>
+                </div>
               </div>
-              <span class="font-mono font-bold text-blue-600 dark:text-blue-400">
-                {{ item.qty }} {{ item.satuan }}
+            </div>
+          </div>
+
+          <!-- Rincian SKU Tersimpan -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                <Boxes class="w-3.5 h-3.5 text-zinc-500" />
+                <span>Rincian Barang (SKU) Tersimpan:</span>
+              </h4>
+              <span class="text-[10.5px] font-mono font-bold text-zinc-600 dark:text-zinc-400">
+                {{ selectedLocationDetail.items.length }} SKU
               </span>
+            </div>
+
+            <!-- Empty State Barang -->
+            <div 
+              v-if="selectedLocationDetail.items.length === 0" 
+              class="py-8 text-center text-zinc-400 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl"
+            >
+              <Boxes class="w-6 h-6 mx-auto mb-1.5 opacity-30 text-zinc-500" />
+              <p class="font-medium text-xs text-zinc-600 dark:text-zinc-400">Lokasi ini saat ini kosong</p>
+              <p class="text-[10px] mt-0.5">Belum ada stok barang yang dialokasikan di area ini.</p>
+            </div>
+
+            <!-- List SKU Tersimpan (Dense Table List) -->
+            <div v-else class="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-zinc-100/70 dark:bg-zinc-800/70 border-b border-zinc-200 dark:border-zinc-700 text-[10px] uppercase font-bold text-zinc-500 select-none">
+                      <th class="py-2 px-3">Kode SKU</th>
+                      <th class="py-2 px-3">Nama Barang</th>
+                      <th class="py-2 px-3 text-right">Stok Fisik</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300">
+                    <tr 
+                      v-for="item in selectedLocationDetail.items" 
+                      :key="item.itemCode"
+                      class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40"
+                    >
+                      <td class="py-2.5 px-3 font-mono font-bold">
+                        <span class="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 text-[11px] text-zinc-900 dark:text-zinc-100">
+                          {{ item.itemCode }}
+                        </span>
+                      </td>
+                      <td class="py-2.5 px-3">
+                        <strong class="text-zinc-950 dark:text-white block">{{ item.deskripsi }}</strong>
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-mono font-extrabold text-zinc-950 dark:text-white text-xs">
+                        {{ item.qty }} <span class="text-[10px] font-normal text-zinc-500">{{ item.satuan }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-          <button @click="selectedLocationDetail = null" class="px-4 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-xl text-xs font-semibold">
-            Tutup
-          </button>
+        <!-- Footer Modal: Aksi Cepat Mutasi & Edit -->
+        <div class="px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div class="text-[11px] text-zinc-400 self-start sm:self-auto">
+            Area ID: <span class="font-mono">{{ selectedLocationDetail.code }}</span>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button 
+              @click="openEditLocationModal(selectedLocationDetail); selectedLocationDetail = null"
+              class="px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
+            >
+              Edit Area
+            </button>
+            <button 
+              @click="startMovementFromLocation(selectedLocationDetail)"
+              class="px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeftRight class="w-3.5 h-3.5" />
+              <span>⚡ Pindahkan Stok dari Area Ini</span>
+            </button>
+            <button 
+              @click="selectedLocationDetail = null" 
+              class="px-3 py-1.5 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-200 cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ============================================================== -->
-    <!-- MODAL 3: DETAIL DOKUMEN MOVEMENT                               -->
+    <!-- MODAL 3: DETAIL DOKUMEN MOVEMENT (MONOCHROME MINIMALIS)         -->
     <!-- ============================================================== -->
     <div 
       v-if="selectedMovementDetail" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 transition-all"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 transition-all"
     >
-      <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col max-h-[88vh]">
-        <div class="h-1.5 w-full bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+      <div class="bg-white dark:bg-zinc-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[88vh]">
+        <!-- Top Subtle Strip -->
+        <div class="h-1 w-full bg-zinc-950 dark:bg-zinc-100"></div>
 
-        <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-mono font-bold text-sm text-slate-900 dark:text-white">{{ selectedMovementDetail.docNo }}</span>
+              <span class="font-mono font-bold text-sm text-zinc-950 dark:text-white">{{ selectedMovementDetail.docNo }}</span>
               <span :class="[
                 'text-[10px] font-bold px-2 py-0.5 rounded-full border',
                 selectedMovementDetail.status === 'APPROVED' 
@@ -1373,22 +2094,22 @@
                 {{ selectedMovementDetail.status === 'APPROVED' ? 'Disetujui & Terkunci' : 'Draft' }}
               </span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
               Tanggal: {{ selectedMovementDetail.tanggal }} • Operator: {{ selectedMovementDetail.operator || '-' }}
             </p>
           </div>
-          <button @click="selectedMovementDetail = null" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <button @click="selectedMovementDetail = null" class="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer">
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <div class="p-5 overflow-y-auto space-y-3 text-xs">
-          <p class="text-slate-500">Catatan: {{ selectedMovementDetail.keterangan || '-' }}</p>
+          <p class="text-zinc-600 dark:text-zinc-300">Catatan: {{ selectedMovementDetail.keterangan || '-' }}</p>
 
-          <div class="border border-slate-200/80 dark:border-slate-800 rounded-xl overflow-x-auto touch-pan-x shadow-xs">
+          <div class="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-x-auto touch-pan-x shadow-xs">
             <table class="min-w-[540px] w-full text-left border-collapse text-xs">
               <thead>
-                <tr class="bg-slate-100 dark:bg-slate-800 border-b text-[10px] uppercase font-bold text-slate-500">
+                <tr class="bg-zinc-100/70 dark:bg-zinc-800/70 border-b border-zinc-200 dark:border-zinc-700 text-[10px] uppercase font-bold text-zinc-500">
                   <th class="py-2 px-3">No</th>
                   <th class="py-2 px-3">Barang</th>
                   <th class="py-2 px-3">Dari (From)</th>
@@ -1396,35 +2117,60 @@
                   <th class="py-2 px-3 text-right">Qty</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300">
                 <tr v-for="(it, idx) in selectedMovementDetail.items" :key="idx">
-                  <td class="py-2 px-3 text-slate-400">{{ idx + 1 }}</td>
+                  <td class="py-2 px-3 text-zinc-400 font-mono">{{ idx + 1 }}</td>
                   <td class="py-2 px-3">
-                    <span class="font-mono font-bold mr-1">{{ it.uniqCode }}</span>
+                    <span class="font-mono font-bold mr-1 text-zinc-950 dark:text-white">{{ it.uniqCode }}</span>
                     <span>{{ it.deskripsi }}</span>
                   </td>
-                  <td class="py-2 px-3 font-mono font-bold text-amber-600">{{ it.fromLocation }}</td>
-                  <td class="py-2 px-3 font-mono font-bold text-emerald-600">{{ it.toLocation }}</td>
-                  <td class="py-2 px-3 text-right font-mono font-bold">{{ it.qty }} {{ it.satuan }}</td>
+                  <td class="py-2 px-3 font-mono font-bold text-amber-600 dark:text-amber-400">{{ it.fromLocation }}</td>
+                  <td class="py-2 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">{{ it.toLocation }}</td>
+                  <td class="py-2 px-3 text-right font-mono font-bold text-zinc-950 dark:text-white">{{ it.qty }} {{ it.satuan }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-500">
+        <div class="px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2.5">
+          <span class="text-xs font-bold text-zinc-500">
             Total: {{ selectedMovementDetail.totalItems }} Item • {{ selectedMovementDetail.totalQty }} Unit
           </span>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Cetak / PDF Dokumen Movement -->
+            <button 
+              type="button"
+              @click="printMovementWorksheetDocument(selectedMovementDetail, selectedMovementDetail.items)"
+              class="px-3.5 py-1.5 bg-white hover:bg-zinc-100 dark:bg-zinc-850 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Cetak Dokumen atau Simpan PDF Resmi"
+            >
+              <Printer class="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
+              <span>Cetak / PDF</span>
+            </button>
+
+            <!-- Ekspor Excel Dokumen Movement -->
+            <button 
+              type="button"
+              @click="exportMovementWorksheetExcel(selectedMovementDetail, selectedMovementDetail.items)"
+              class="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Ekspor Dokumen ke Excel (.xlsx)"
+            >
+              <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Ekspor Excel</span>
+            </button>
+
             <button 
               v-if="selectedMovementDetail.status === 'DRAFT'"
               @click="approveMovementDoc(selectedMovementDetail)"
-              class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold"
+              class="px-4 py-1.5 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer"
             >
               Setujui Sekarang
             </button>
-            <button @click="selectedMovementDetail = null" class="px-4 py-1.5 bg-slate-200 dark:bg-slate-700 rounded-xl text-xs font-semibold">
+            <button 
+              @click="selectedMovementDetail = null" 
+              class="px-4 py-1.5 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold cursor-pointer"
+            >
               Tutup
             </button>
           </div>
@@ -1435,7 +2181,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { 
   db, 
   getLocationDetailsWithOccupancy, 
@@ -1463,11 +2209,23 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   X,
-  Download
+  Download,
+  ChevronsUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronRight,
+  RotateCcw,
+  SlidersHorizontal,
+  Filter,
+  Printer,
+  FileSpreadsheet
 } from 'lucide-vue-next';
 import * as XLSX from 'xlsx';
 import SkeletonLoader from '../components/SkeletonLoader.vue';
-import { createStyledSheet } from '../utils/excelFormatter';
+import Pagination from '../components/Pagination.vue';
+import SmartSearchSelect from '../components/SmartSearchSelect.vue';
+import { createStyledSheet, exportMovementWorksheetExcel } from '../utils/excelFormatter';
+import { printMovementWorksheetDocument } from '../utils/documentPrinter';
 
 const props = defineProps({
   itemsWithStock: {
@@ -1489,8 +2247,17 @@ const activeSubTab = ref('dashboard');
 const locationsList = ref([]);
 const movementsList = ref([]);
 const locationSearch = ref('');
+const locationTypeFilter = ref('ALL');
+const locationStatusFilter = ref('ALL');
+const locationSortKey = ref('code');
+const locationSortOrder = ref('asc');
+const locCurrentPage = ref(1);
+const locPageSize = ref(10);
+
 const movementSearch = ref('');
 const movementStatusFilter = ref('ALL');
+const movCurrentPage = ref(1);
+const movPageSize = ref(10);
 
 // Modal State
 const isLocationModalOpen = ref(false);
@@ -1524,6 +2291,7 @@ const selectedItemLocations = ref([]);
 const draftFromLocation = ref('');
 const draftToLocation = ref('');
 const draftMoveQty = ref(1);
+const draftItemNote = ref('');
 
 // Computed: Total Kapasitas & Okupansi
 const totalMaxCapacity = computed(() => {
@@ -1543,15 +2311,213 @@ const overallUtilization = computed(() => {
   return Math.min(100, Math.round((totalCurrentOccupancy.value / totalMaxCapacity.value) * 100));
 });
 
-// Filtered Locations
+// Analytics Breakdown untuk Dashboard Okupansi
+const occupancyStatusBreakdown = computed(() => {
+  const total = locationsList.value.length;
+  if (total === 0) {
+    return {
+      full: { count: 0, percent: 0 },
+      warning: { count: 0, percent: 0 },
+      optimal: { count: 0, percent: 0 },
+      low: { count: 0, percent: 0 },
+      total: 0
+    };
+  }
+
+  const full = locationsList.value.filter(l => l.occupancyPercent >= 100).length;
+  const warning = locationsList.value.filter(l => l.occupancyPercent >= 85 && l.occupancyPercent < 100).length;
+  const optimal = locationsList.value.filter(l => l.occupancyPercent > 15 && l.occupancyPercent < 85).length;
+  const low = locationsList.value.filter(l => l.occupancyPercent <= 15).length;
+
+  return {
+    full: { count: full, percent: Math.round((full / total) * 100) },
+    warning: { count: warning, percent: Math.round((warning / total) * 100) },
+    optimal: { count: optimal, percent: Math.round((optimal / total) * 100) },
+    low: { count: low, percent: Math.round((low / total) * 100) },
+    total
+  };
+});
+
+// Segmen Donut SVG Chart
+const donutSegments = computed(() => {
+  const total = locationsList.value.length;
+  const circ = 2 * Math.PI * 40; // 251.327
+  if (total === 0) return [];
+
+  const b = occupancyStatusBreakdown.value;
+  const items = [
+    { key: 'FULL', label: 'Penuh (100%)', count: b.full.count, percent: b.full.percent, color: '#f43f5e', textColor: 'text-rose-500', bgBadge: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' },
+    { key: 'WARNING', label: 'Hampir Penuh (≥85%)', count: b.warning.count, percent: b.warning.percent, color: '#f59e0b', textColor: 'text-amber-500', bgBadge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' },
+    { key: 'OPTIMAL', label: 'Optimal (16% - 84%)', count: b.optimal.count, percent: b.optimal.percent, color: '#10b981', textColor: 'text-emerald-500', bgBadge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' },
+    { key: 'LOW', label: 'Kapasitas Lega (≤15%)', count: b.low.count, percent: b.low.percent, color: '#64748b', textColor: 'text-zinc-500', bgBadge: 'bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/20' }
+  ];
+
+  let cumulativeOffset = 0;
+  return items.map(item => {
+    const dashLength = (item.count / total) * circ;
+    const dashOffset = -cumulativeOffset;
+    cumulativeOffset += dashLength;
+    return {
+      ...item,
+      dashLength,
+      dashOffset,
+      circumference: circ
+    };
+  });
+});
+
+// Utilisasi Beban per Kategori / Tipe Zona Gudang
+const categoryOccupancyStats = computed(() => {
+  const map = new Map();
+  for (const loc of locationsList.value) {
+    const type = loc.type || 'Lainnya';
+    if (!map.has(type)) {
+      map.set(type, {
+        type,
+        count: 0,
+        totalCapacity: 0,
+        currentQty: 0
+      });
+    }
+    const cat = map.get(type);
+    cat.count += 1;
+    cat.totalCapacity += Number(loc.maxCapacity) || 0;
+    cat.currentQty += Number(loc.currentQty) || 0;
+  }
+
+  return Array.from(map.values())
+    .map(cat => {
+      const availableCapacity = Math.max(0, cat.totalCapacity - cat.currentQty);
+      const percent = cat.totalCapacity > 0 ? Math.round((cat.currentQty / cat.totalCapacity) * 100) : 0;
+      return {
+        ...cat,
+        availableCapacity,
+        percent
+      };
+    })
+    .sort((a, b) => b.percent - a.percent);
+});
+
+// Top 5 Area Terpadat (Perlu Relokasi / Monitoring)
+const topOccupiedLocations = computed(() => {
+  return [...locationsList.value]
+    .sort((a, b) => b.occupancyPercent - a.occupancyPercent)
+    .slice(0, 5);
+});
+
+// Top 5 Area Paling Longgar (Target Putaway Terbaik)
+const topAvailableLocations = computed(() => {
+  return [...locationsList.value]
+    .filter(l => l.availableCapacity > 0)
+    .sort((a, b) => b.availableCapacity - a.availableCapacity)
+    .slice(0, 5);
+});
+
+function openManageWithStatusFilter(status) {
+  locationStatusFilter.value = status;
+  activeSubTab.value = 'manage';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openManageWithTypeFilter(type) {
+  locationTypeFilter.value = type;
+  activeSubTab.value = 'manage';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Daftar Kategori / Tipe Unik Lokasi
+const uniqueLocationTypes = computed(() => {
+  const set = new Set(locationsList.value.map(l => l.type).filter(Boolean));
+  return Array.from(set).sort();
+});
+
+// Status Apakah Filter Lokasi Aktif
+const isLocationFilterActive = computed(() => {
+  return locationSearch.value.trim() !== '' || 
+         locationTypeFilter.value !== 'ALL' || 
+         locationStatusFilter.value !== 'ALL' ||
+         locationSortKey.value !== 'code' ||
+         locationSortOrder.value !== 'asc';
+});
+
+function resetLocationFilters() {
+  locationSearch.value = '';
+  locationTypeFilter.value = 'ALL';
+  locationStatusFilter.value = 'ALL';
+  locationSortKey.value = 'code';
+  locationSortOrder.value = 'asc';
+  locCurrentPage.value = 1;
+}
+
+// Filter & Sort Locations (Mendukung Ribuan Data dengan Sorting & Filtering Cepat)
 const filteredLocations = computed(() => {
-  if (!locationSearch.value.trim()) return locationsList.value;
-  const q = locationSearch.value.toLowerCase().trim();
-  return locationsList.value.filter(l => 
-    l.code.toLowerCase().includes(q) ||
-    l.name.toLowerCase().includes(q) ||
-    l.type.toLowerCase().includes(q)
-  );
+  let list = [...locationsList.value];
+  
+  if (locationTypeFilter.value !== 'ALL') {
+    list = list.filter(l => l.type === locationTypeFilter.value);
+  }
+
+  if (locationStatusFilter.value !== 'ALL') {
+    list = list.filter(l => l.status === locationStatusFilter.value);
+  }
+
+  if (locationSearch.value.trim()) {
+    const q = locationSearch.value.toLowerCase().trim();
+    list = list.filter(l => 
+      l.code.toLowerCase().includes(q) ||
+      l.name.toLowerCase().includes(q) ||
+      (l.type && l.type.toLowerCase().includes(q)) ||
+      (l.keterangan && l.keterangan.toLowerCase().includes(q)) ||
+      (l.items && l.items.some(i => 
+        (i.itemCode && i.itemCode.toLowerCase().includes(q)) ||
+        (i.deskripsi && i.deskripsi.toLowerCase().includes(q))
+      ))
+    );
+  }
+
+  list.sort((a, b) => {
+    let valA, valB;
+    if (locationSortKey.value === 'itemsCount') {
+      valA = a.items?.length || 0;
+      valB = b.items?.length || 0;
+    } else if (['maxCapacity', 'currentQty', 'occupancyPercent'].includes(locationSortKey.value)) {
+      valA = Number(a[locationSortKey.value]) || 0;
+      valB = Number(b[locationSortKey.value]) || 0;
+    } else {
+      valA = String(a[locationSortKey.value] || '').toLowerCase();
+      valB = String(b[locationSortKey.value] || '').toLowerCase();
+    }
+
+    if (valA < valB) return locationSortOrder.value === 'asc' ? -1 : 1;
+    if (valA > valB) return locationSortOrder.value === 'asc' ? 1 : -1;
+    return a.code.localeCompare(b.code);
+  });
+
+  return list;
+});
+
+// Paginated Locations (Hanya render slice per halaman agar performa super cepat)
+const paginatedLocations = computed(() => {
+  const start = (locCurrentPage.value - 1) * locPageSize.value;
+  return filteredLocations.value.slice(start, start + locPageSize.value);
+});
+
+function toggleLocationSort(key) {
+  if (locationSortKey.value === key) {
+    locationSortOrder.value = locationSortOrder.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    locationSortKey.value = key;
+    locationSortOrder.value = 'asc';
+  }
+}
+
+function getLocationSortIcon(key) {
+  if (locationSortKey.value !== key) return ChevronsUpDown;
+  return locationSortOrder.value === 'asc' ? ArrowUp : ArrowDown;
+}
+
+watch([locationSearch, locationTypeFilter, locationStatusFilter, locationSortKey, locationSortOrder], () => {
+  locCurrentPage.value = 1;
 });
 
 // Filtered Movements
@@ -1573,7 +2539,19 @@ const filteredMovements = computed(() => {
   return list;
 });
 
+// Paginated Movements
+const paginatedMovements = computed(() => {
+  const start = (movCurrentPage.value - 1) * movPageSize.value;
+  return filteredMovements.value.slice(start, start + movPageSize.value);
+});
+
+watch([movementSearch, movementStatusFilter], () => {
+  movCurrentPage.value = 1;
+});
+
 // Smart Search Suggestions
+const highlightedItemIndex = ref(0);
+
 const matchingItemSuggestions = computed(() => {
   if (!typedItemSearch.value.trim()) return [];
   const q = typedItemSearch.value.toLowerCase().trim();
@@ -1583,9 +2561,53 @@ const matchingItemSuggestions = computed(() => {
   ).slice(0, 8);
 });
 
+watch(typedItemSearch, () => {
+  highlightedItemIndex.value = 0;
+});
+
+function navigateItemSuggestions(delta) {
+  if (matchingItemSuggestions.value.length === 0) return;
+  isSmartDropdownOpen.value = true;
+  const len = matchingItemSuggestions.value.length;
+  highlightedItemIndex.value = (highlightedItemIndex.value + delta + len) % len;
+}
+
+function selectHighlightedItem() {
+  if (isSmartDropdownOpen.value && matchingItemSuggestions.value[highlightedItemIndex.value]) {
+    selectItemForMovement(matchingItemSuggestions.value[highlightedItemIndex.value]);
+  }
+}
+
 // Destination Locations (excluding current From)
 const destinationLocations = computed(() => {
   return locationsList.value.filter(l => l.code !== draftFromLocation.value);
+});
+
+const fromLocationOptions = computed(() => {
+  return selectedItemLocations.value.map(loc => ({
+    value: loc.locationCode,
+    label: loc.locationCode,
+    sublabel: loc.locationName,
+    badge: `${getAvailableInLocation(loc.locationCode)} ${selectedItemObj.value?.satuan || 'unit'}`
+  }));
+});
+
+const allLocationOptions = computed(() => {
+  return locationsList.value.map(loc => ({
+    value: loc.code,
+    label: loc.code,
+    sublabel: `${loc.name} • ${loc.type || 'Storage'}`,
+    badge: `Sisa ${loc.availableCapacity}`
+  }));
+});
+
+const destinationLocationOptions = computed(() => {
+  return destinationLocations.value.map(loc => ({
+    value: loc.code,
+    label: loc.code,
+    sublabel: `${loc.name} • ${loc.type || 'Storage'}`,
+    badge: `Sisa ${loc.availableCapacity}`
+  }));
 });
 
 // Info From Location terpilih
@@ -1728,6 +2750,7 @@ function clearSelectedItem() {
   draftFromLocation.value = '';
   draftToLocation.value = '';
   draftMoveQty.value = 1;
+  draftItemNote.value = '';
 }
 
 // Tambah Baris ke Worksheet
@@ -1768,7 +2791,7 @@ function addItemRowToWorksheet() {
     fromLocation: draftFromLocation.value,
     toLocation: draftToLocation.value,
     qty: moveQty,
-    keterangan: 'Mutasi internal'
+    keterangan: draftItemNote.value.trim() || 'Mutasi internal'
   });
 
   clearSelectedItem();
@@ -1830,9 +2853,9 @@ async function saveWorksheet(isApproveNow = false) {
     totalItems: worksheetItems.value.length,
     totalQty: totalWorksheetQty.value,
     items: JSON.parse(JSON.stringify(worksheetItems.value)),
-    status: isApproveNow ? 'APPROVED' : 'DRAFT',
-    isLocked: isApproveNow,
-    approvedAt: isApproveNow ? new Date().toISOString() : null,
+    status: 'DRAFT',
+    isLocked: false,
+    approvedAt: null,
     updatedAt: new Date().toISOString()
   };
 
@@ -1918,6 +2941,70 @@ async function deleteDraftMovement(mov) {
 // Detail Modals
 function openLocationDetailModal(loc) {
   selectedLocationDetail.value = loc;
+}
+
+async function startMovementFromLocation(loc) {
+  selectedLocationDetail.value = null;
+  if (!loc || !loc.code) return;
+
+  // Dapatkan item-item yang ada di lokasi ini
+  let itemsInLoc = loc.items || [];
+  if (!itemsInLoc || itemsInLoc.length === 0) {
+    const allItemLocs = await db.item_locations.where('locationCode').equals(loc.code).toArray();
+    itemsInLoc = allItemLocs.filter(il => Number(il.qty) > 0).map(il => {
+      const master = props.itemsWithStock.find(m => m.uniqCode === il.itemCode) || {};
+      return {
+        itemCode: il.itemCode,
+        deskripsi: master.deskripsi || il.itemCode,
+        satuan: master.satuan || 'Unit',
+        qty: Number(il.qty)
+      };
+    });
+  }
+
+  if (itemsInLoc.length === 0) {
+    alert(`Area "${loc.code} - ${loc.name || ''}" saat ini kosong dan tidak memiliki stok barang untuk dipindahkan.`);
+    return;
+  }
+
+  // Buka worksheet baru
+  await openNewWorksheet();
+  worksheetHeader.value.keterangan = `Relokasi seluruh stok dari area ${loc.code} (${loc.name || loc.code})`;
+
+  // Cari rekomendasi lokasi tujuan default (rak lain yang memiliki ruang sisa dan bukan lokasi asal)
+  const candidateRack = locationsList.value
+    .filter(l => l.code !== loc.code && l.code !== 'ZONE-STAGING')
+    .sort((a, b) => b.availableCapacity - a.availableCapacity)[0] || 
+    locationsList.value.find(l => l.code !== loc.code);
+  const defaultToCode = candidateRack ? candidateRack.code : '';
+
+  // MASUKKAN SELURUH ITEM DI LOKASI INI KE DALAM LEMBAR KERJA WORKSHEET!
+  worksheetItems.value = itemsInLoc.map(it => {
+    const master = props.itemsWithStock.find(m => m.uniqCode === it.itemCode) || {};
+    return {
+      uniqCode: it.itemCode,
+      deskripsi: it.deskripsi || master.deskripsi || it.itemCode,
+      satuan: it.satuan || master.satuan || 'Unit',
+      fromLocation: loc.code,
+      toLocation: defaultToCode,
+      qty: it.qty,
+      keterangan: `Pindah dari ${loc.code}`
+    };
+  });
+
+  // Pre-fill form input baris atas dengan item pertama untuk kenyamanan
+  draftFromLocation.value = loc.code;
+  draftToLocation.value = defaultToCode;
+  const firstMaster = props.itemsWithStock.find(m => m.uniqCode === itemsInLoc[0].itemCode);
+  if (firstMaster) {
+    selectedItemObj.value = firstMaster;
+    typedItemSearch.value = `${firstMaster.uniqCode} - ${firstMaster.deskripsi}`;
+    selectedItemLocations.value = await getItemLocationsBreakdown(firstMaster.uniqCode);
+    draftMoveQty.value = 1;
+  }
+
+  activeSubTab.value = 'worksheet';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function openMovementDetailModal(mov) {

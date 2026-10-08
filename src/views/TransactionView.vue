@@ -127,6 +127,12 @@
               >
                 {{ doc.type === 'IN' ? 'Masuk' : 'Keluar' }}
               </span>
+              <span 
+                v-if="doc.status === 'DRAFT'"
+                class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 uppercase shrink-0"
+              >
+                Draft
+              </span>
               <span class="font-mono text-xs font-bold text-slate-900 dark:text-white shrink-0">
                 {{ doc.trxCode }}
               </span>
@@ -158,24 +164,38 @@
               class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 text-[11px] hover:underline cursor-pointer"
             >
               <Eye class="w-3.5 h-3.5" />
-              <span>Detail Item ({{ doc.items?.length || 0 }})</span>
+              <span>Detail ({{ doc.items?.length || 0 }})</span>
             </button>
             <div class="flex items-center gap-1.5">
-              <button 
-                @click="openEditPage(doc)"
-                class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-[10.5px] font-semibold flex items-center gap-1 cursor-pointer"
-                title="Edit Dokumen"
-              >
-                <Pencil class="w-3 h-3 text-emerald-600" />
-                <span>Edit</span>
-              </button>
-              <button 
-                @click="deleteDoc(doc)"
-                class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
-                title="Hapus Dokumen"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
-              </button>
+              <!-- HANYA DRAFT YANG DAPAT DI-EDIT & DIHAPUS -->
+              <template v-if="isDocEditable(doc)">
+                <button 
+                  @click="openEditPage(doc)"
+                  class="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 text-amber-700 dark:text-amber-300 rounded text-[10.5px] font-semibold flex items-center gap-1 cursor-pointer"
+                  title="Edit Draf Dokumen"
+                >
+                  <Pencil class="w-3 h-3 text-amber-600" />
+                  <span>Edit</span>
+                </button>
+                <button 
+                  @click="deleteDoc(doc)"
+                  class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors cursor-pointer"
+                  title="Hapus Draf Dokumen"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </template>
+
+              <!-- JIKA BUKAN DRAFT: DOKUMEN RESMI TERKUNCI TOTAL -->
+              <template v-else>
+                <span 
+                  class="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded text-[10px] font-medium flex items-center gap-1 border border-zinc-200 dark:border-zinc-700 select-none cursor-not-allowed"
+                  title="Dokumen Resmi Terkunci"
+                >
+                  <Lock class="w-2.5 h-2.5 text-zinc-400" />
+                  <span>Terkunci</span>
+                </span>
+              </template>
             </div>
           </div>
         </div>
@@ -236,15 +256,23 @@
                 class="hover:bg-emerald-500/5 dark:hover:bg-slate-800/50 transition-colors"
               >
                 <td class="py-2.5 px-3.5">
-                  <span 
-                    :class="[
-                      'px-2 py-0.5 rounded text-[10px] font-bold tracking-wider inline-flex items-center gap-1 uppercase',
-                      doc.type === 'IN' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'
-                    ]"
-                  >
-                    <component :is="doc.type === 'IN' ? ArrowDownLeft : ArrowUpRight" class="w-3 h-3" />
-                    {{ doc.type === 'IN' ? 'TO Masuk' : 'TO Keluar' }}
-                  </span>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span 
+                      :class="[
+                        'px-2 py-0.5 rounded text-[10px] font-bold tracking-wider inline-flex items-center gap-1 uppercase',
+                        doc.type === 'IN' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'
+                      ]"
+                    >
+                      <component :is="doc.type === 'IN' ? ArrowDownLeft : ArrowUpRight" class="w-3 h-3" />
+                      {{ doc.type === 'IN' ? 'TO Masuk' : 'TO Keluar' }}
+                    </span>
+                    <span 
+                      v-if="doc.status === 'DRAFT'"
+                      class="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 uppercase"
+                    >
+                      Draft
+                    </span>
+                  </div>
                 </td>
                 <td class="py-2.5 px-3.5 font-mono font-bold text-slate-900 dark:text-slate-100">{{ doc.trxCode }}</td>
                 <td class="py-2.5 px-3.5 font-medium text-slate-600 dark:text-slate-400">{{ doc.tanggal }}</td>
@@ -258,27 +286,58 @@
                   <div class="flex items-center justify-center gap-1.5">
                     <button 
                       @click="openDetailModal(doc)"
-                      class="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 rounded text-xs font-semibold flex items-center gap-1"
+                      class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer"
                       title="Lihat Detail Item"
                     >
                       <Eye class="w-3 h-3" />
                       <span>Buka</span>
                     </button>
+
+                    <!-- Tombol Cepat Cetak PDF & Excel -->
                     <button 
-                      @click="openEditPage(doc)"
-                      class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded text-xs font-semibold flex items-center gap-1"
-                      title="Edit Dokumen Transfer Order"
+                      @click="printTransferOrderDocument(doc)"
+                      class="p-1 rounded-lg text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
+                      title="Cetak Dokumen / Simpan PDF"
                     >
-                      <Pencil class="w-3 h-3 text-emerald-600" />
-                      <span>Edit</span>
+                      <Printer class="w-3.5 h-3.5" />
                     </button>
                     <button 
-                      @click="deleteDoc(doc)"
-                      class="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded"
-                      title="Hapus Dokumen"
+                      @click="exportTransferOrderExcel(doc)"
+                      class="p-1 rounded-lg text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer transition-colors"
+                      title="Ekspor Dokumen ke Excel (.xlsx)"
                     >
-                      <Trash2 class="w-3.5 h-3.5" />
+                      <FileSpreadsheet class="w-3.5 h-3.5" />
                     </button>
+
+                    <!-- HANYA DRAFT YANG DAPAT DI-EDIT & DIHAPUS -->
+                    <template v-if="isDocEditable(doc)">
+                      <button 
+                        @click="openEditPage(doc)"
+                        class="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 text-amber-700 dark:text-amber-300 rounded text-xs font-semibold flex items-center gap-1 cursor-pointer"
+                        title="Edit Draf Dokumen"
+                      >
+                        <Pencil class="w-3 h-3 text-amber-600" />
+                        <span>Edit</span>
+                      </button>
+                      <button 
+                        @click="deleteDoc(doc)"
+                        class="p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
+                        title="Hapus Draf Dokumen"
+                      >
+                        <Trash2 class="w-3.5 h-3.5" />
+                      </button>
+                    </template>
+
+                    <!-- DOKUMEN RESMI TERKUNCI TOTAL (LOCKED) -->
+                    <template v-else>
+                      <span 
+                        class="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded text-[11px] font-medium flex items-center gap-1 border border-zinc-200 dark:border-zinc-700 select-none cursor-not-allowed"
+                        title="Dokumen resmi sudah diposting dan terkunci. Tidak dapat diedit atau dihapus demi integritas kartu stok."
+                      >
+                        <Lock class="w-3 h-3 text-zinc-400" />
+                        <span>Terkunci</span>
+                      </span>
+                    </template>
                   </div>
                 </td>
               </tr>
@@ -326,6 +385,12 @@
               <span class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                 {{ formHeader.trxCode }}
               </span>
+
+              <!-- Indikator Auto-Save IndexedDB -->
+              <span v-if="lastDraftSavedTime" class="hidden sm:inline-flex items-center gap-1.5 text-[10.5px] text-zinc-500 dark:text-zinc-400 font-mono px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700" title="Draf otomatis disimpan di IndexedDB browser Anda">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" :class="isAutosaving ? 'animate-ping' : ''"></span>
+                <span>Draf otomatis {{ lastDraftSavedTime }}</span>
+              </span>
             </div>
           </div>
 
@@ -339,8 +404,20 @@
               <span>Tambah Item</span>
             </button>
 
+            <!-- Opsi 1: Simpan sebagai Draf (Bisa diedit/dihapus) -->
             <button 
-              @click="saveEntireDocument"
+              @click="saveEntireDocument('DRAFT')"
+              :disabled="draftItems.length === 0"
+              class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              title="Simpan sebagai Draf (dapat diedit atau dihapus kembali)"
+            >
+              <Save class="w-3.5 h-3.5" />
+              <span>Simpan Draf</span>
+            </button>
+
+            <!-- Opsi 2: Posting Dokumen Sah (Dikunci Total) -->
+            <button 
+              @click="saveEntireDocument('POSTED')"
               :disabled="draftItems.length === 0"
               :class="[
                 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer',
@@ -348,11 +425,47 @@
                   ? 'bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 border border-zinc-950 dark:border-white' 
                   : 'bg-rose-600 hover:bg-rose-500 text-white shadow-sm'
               ]"
-              title="Tekan Ctrl+Enter untuk simpan cepat"
+              title="Posting resmi & KUNCI TOTAL dokumen (Tekan Ctrl+Enter)"
             >
-              <Save class="w-3.5 h-3.5" />
-              <span>{{ isEditingDoc ? 'Perbarui TO' : 'Simpan TO' }} ({{ draftItems.length }})</span>
+              <Lock class="w-3.5 h-3.5 text-amber-400 dark:text-amber-300" />
+              <span>Posting & Kunci TO ({{ draftItems.length }})</span>
               <kbd class="hidden sm:inline text-[9px] font-mono px-1 py-0.2 bg-black/20 rounded">Ctrl+Enter</kbd>
+            </button>
+          </div>
+        </div>
+
+        <!-- BANNER PULIHKAN DRAF OTOMATIS (INDEXEDDB) -->
+        <div 
+          v-if="hasPendingDraft && pendingDraftData"
+          class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/80 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs"
+        >
+          <div class="flex items-start gap-2">
+            <Sparkles class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <strong class="text-amber-900 dark:text-amber-200 block font-bold">
+                Ditemukan Draf Belum Tersimpan di IndexedDB
+              </strong>
+              <span class="text-amber-800 dark:text-amber-300 text-[11px] block mt-0.5">
+                Ada data form yang belum tersimpan dari sesi sebelumnya ({{ pendingDraftData.items?.length || 0 }} item, {{ pendingDraftData.header?.noDocument ? 'No Doc: ' + pendingDraftData.header.noDocument : 'Draf baru' }}). Ingin pulihkan data ini?
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <button 
+              type="button" 
+              @click="applyRestoredDraft"
+              class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <RotateCcw class="w-3.5 h-3.5" />
+              <span>Pulihkan Draf</span>
+            </button>
+            <button 
+              type="button" 
+              @click="discardPendingDraft"
+              class="px-2.5 py-1 bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-lg font-medium text-xs transition-colors cursor-pointer"
+            >
+              Abaikan & Buang
             </button>
           </div>
         </div>
@@ -409,14 +522,12 @@
             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5" title="Default area rak untuk barang masuk (Default: Staging Area)">
               Default Area Masuk
             </label>
-            <select 
+            <SmartSearchSelect 
               v-model="formHeader.defaultLocation"
-              class="w-full px-2 py-1 glass-input rounded-lg text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
-            >
-              <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
-                {{ loc.code }} ({{ loc.name }})
-              </option>
-            </select>
+              :options="locationSelectOptions"
+              placeholder="Pilih rak default..."
+              search-placeholder="Cari kode rak / nama..."
+            />
           </div>
 
           <!-- Keterangan Dokumen -->
@@ -550,16 +661,12 @@
 
             <!-- Lokasi Rak -->
             <div class="col-span-8 sm:col-span-3">
-              <select 
+              <SmartSearchSelect 
                 v-model="itemLocation"
-                class="w-full px-2 py-1.5 glass-input rounded-lg text-xs font-mono font-bold text-blue-600 dark:text-blue-400"
-                :title="formHeader.type === 'IN' ? 'Pilih rak masuk' : 'Pilih rak pengambilan'"
-              >
-                <option v-if="formHeader.type === 'OUT'" value="">AUTO (Picking)</option>
-                <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
-                  {{ loc.code }}
-                </option>
-              </select>
+                :options="formHeader.type === 'OUT' ? locationSelectOptionsWithAuto : locationSelectOptions"
+                placeholder="Pilih rak..."
+                search-placeholder="Cari rak..."
+              />
             </div>
 
             <!-- Catatan -->
@@ -680,18 +787,14 @@
                 <td class="py-2 px-3 text-right font-black text-xs text-slate-900 dark:text-white">{{ it.qty }}</td>
                 <td class="py-2 px-3 text-slate-500 dark:text-slate-400 max-w-[160px] truncate">{{ it.keterangan || '-' }}</td>
 
-                <!-- SEL AREA RAK DENGAN DROPDOWN -->
-                <td class="py-2 px-3 text-center">
-                  <select 
+                <!-- SEL AREA RAK DENGAN SMART SEARCH DROPDOWN -->
+                <td class="py-2 px-3 text-center min-w-[140px]">
+                  <SmartSearchSelect 
                     v-model="it.locationCode"
-                    class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-700 dark:text-blue-300"
-                    :title="formHeader.type === 'IN' ? 'Ubah lokasi rak tujuan' : 'Ubah rak asal pengambilan'"
-                  >
-                    <option v-if="formHeader.type === 'OUT'" value="AUTO">AUTO (Picking)</option>
-                    <option v-for="loc in availableLocations" :key="loc.code" :value="loc.code">
-                      {{ loc.code }}
-                    </option>
-                  </select>
+                    :options="formHeader.type === 'OUT' ? locationSelectOptionsWithAuto : locationSelectOptions"
+                    placeholder="Pilih rak..."
+                    search-placeholder="Cari rak..."
+                  />
                 </td>
 
                 <!-- SEL QTY AKTUAL DENGAN KUADRAT PENJUMLAHAN MINIMALIS -->
@@ -849,7 +952,7 @@
         <!-- Modal Header dengan Aksen Cahaya Lembut -->
         <div class="px-5 sm:px-6 py-4 bg-gradient-to-b from-slate-50/80 via-white to-white dark:from-slate-800/80 dark:to-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span 
                 :class="[
                   'px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border',
@@ -859,6 +962,19 @@
                 ]"
               >
                 {{ selectedDetailDoc.type === 'IN' ? 'Transfer Masuk (IN)' : 'Transfer Keluar (OUT)' }}
+              </span>
+              <span 
+                v-if="selectedDetailDoc.status === 'DRAFT'"
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800"
+              >
+                Draft
+              </span>
+              <span 
+                v-else
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 inline-flex items-center gap-1"
+              >
+                <Lock class="w-2.5 h-2.5 text-zinc-500" />
+                <span>Resmi & Terkunci</span>
               </span>
               <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white font-mono">{{ selectedDetailDoc.trxCode }}</h2>
             </div>
@@ -929,13 +1045,55 @@
           </div>
         </div>
 
-        <div class="px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-          <button 
-            @click="selectedDetailDoc = null"
-            class="px-4 py-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-          >
-            Tutup
-          </button>
+        <div class="px-5 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div class="text-xs">
+            <span v-if="!isDocEditable(selectedDetailDoc)" class="inline-flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 text-[11px]">
+              <Lock class="w-3.5 h-3.5 text-zinc-400" />
+              <span>Dokumen sah & terkunci permanen untuk menjaga integritas kartu stok.</span>
+            </span>
+            <span v-else class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-[11px] font-medium">
+              <span>Dokumen Draf (Belum mempengaruhi stok fisik gudang).</span>
+            </span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 self-end sm:self-auto">
+            <!-- Tombol Cetak / Simpan PDF -->
+            <button 
+              type="button"
+              @click="printTransferOrderDocument(selectedDetailDoc)"
+              class="px-3.5 py-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 bg-white hover:bg-zinc-100 dark:bg-zinc-850 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Cetak Dokumen atau Simpan PDF Resmi"
+            >
+              <Printer class="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
+              <span>Cetak / PDF</span>
+            </button>
+
+            <!-- Tombol Ekspor Excel -->
+            <button 
+              type="button"
+              @click="exportTransferOrderExcel(selectedDetailDoc)"
+              class="px-3.5 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Ekspor Dokumen ke Format Excel (.xlsx)"
+            >
+              <FileSpreadsheet class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Ekspor Excel</span>
+            </button>
+
+            <button 
+              v-if="isDocEditable(selectedDetailDoc)"
+              @click="openEditFromDetail(selectedDetailDoc)"
+              class="px-3.5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Pencil class="w-3.5 h-3.5" />
+              <span>Edit Draf</span>
+            </button>
+            <button 
+              @click="selectedDetailDoc = null"
+              class="px-4 py-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1128,11 +1286,20 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
-import { db, generateAutoTrxCode, applyTransactionStockToLocations } from '../database/db';
+import { 
+  db, 
+  generateAutoTrxCode, 
+  applyTransactionStockToLocations,
+  saveFormDraft,
+  getFormDraft,
+  deleteFormDraft
+} from '../database/db';
 import Pagination from '../components/Pagination.vue';
 import SkeletonLoader from '../components/SkeletonLoader.vue';
+import SmartSearchSelect from '../components/SmartSearchSelect.vue';
 import * as XLSX from 'xlsx';
-import { createStyledSheet } from '../utils/excelFormatter';
+import { createStyledSheet, exportTransferOrderExcel } from '../utils/excelFormatter';
+import { printTransferOrderDocument } from '../utils/documentPrinter';
 import { 
   ArrowDownLeft, 
   ArrowUpRight, 
@@ -1152,7 +1319,12 @@ import {
   ArrowDown,
   ChevronsUpDown,
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  RotateCcw,
+  Sparkles,
+  Lock,
+  CheckCircle2,
+  Printer
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -1307,6 +1479,22 @@ function downloadTransactionsExcel() {
 const availableLocations = ref([]);
 const itemLocation = ref('ZONE-STAGING');
 
+const locationSelectOptions = computed(() => {
+  return availableLocations.value.map(l => ({
+    value: l.code,
+    label: l.code,
+    sublabel: l.name,
+    badge: l.type || 'Storage'
+  }));
+});
+
+const locationSelectOptionsWithAuto = computed(() => {
+  return [
+    { value: 'AUTO', label: 'AUTO (Picking Otomatis)', sublabel: 'Sistem memilih rak stok tersedia' },
+    ...locationSelectOptions.value
+  ];
+});
+
 async function loadLocations() {
   const locs = await db.locations.toArray();
   if (locs.length > 0) {
@@ -1351,6 +1539,118 @@ const smartInputRef = ref(null);
 const qtyInputRef = ref(null);
 const noteInputRef = ref(null);
 const addButtonRef = ref(null);
+
+// ==============================================================
+// AUTO-SAVE DRAF TRANSFER ORDER (INDEXEDDB)
+// ==============================================================
+// Helper: Hanya dokumen berstatus DRAFT yang boleh diedit atau dihapus
+function isDocEditable(doc) {
+  if (!doc) return false;
+  return doc.status === 'DRAFT' && !doc.isLocked;
+}
+
+const hasPendingDraft = ref(false);
+const pendingDraftData = ref(null);
+const lastDraftSavedTime = ref('');
+const isAutosaving = ref(false);
+const isCheckingDraft = ref(false);
+let autosaveTimer = null;
+
+const currentDraftKey = computed(() => {
+  if (isEditingDoc.value && editingDocId.value) {
+    return `to_draft_edit_${editingDocId.value}`;
+  }
+  return 'to_draft_new';
+});
+
+async function checkForSavedDraft(key) {
+  isCheckingDraft.value = true;
+  try {
+    const draftRecord = await getFormDraft(key);
+    if (draftRecord && draftRecord.data) {
+      const data = draftRecord.data;
+      const hasContent = (data.items && data.items.length > 0) || 
+                         (data.header && (data.header.noDocument?.trim() || data.header.keterangan?.trim()));
+      if (hasContent) {
+        pendingDraftData.value = {
+          ...data,
+          updatedAt: draftRecord.updatedAt
+        };
+        hasPendingDraft.value = true;
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal membaca draf dari IndexedDB:', err);
+  } finally {
+    isCheckingDraft.value = false;
+  }
+  hasPendingDraft.value = false;
+  pendingDraftData.value = null;
+}
+
+function applyRestoredDraft() {
+  if (!pendingDraftData.value) return;
+  const d = pendingDraftData.value;
+  if (d.header) {
+    formHeader.value = {
+      ...formHeader.value,
+      ...d.header
+    };
+    if (d.header.defaultLocation) {
+      itemLocation.value = d.header.defaultLocation;
+    }
+  }
+  if (Array.isArray(d.items)) {
+    draftItems.value = JSON.parse(JSON.stringify(d.items));
+  }
+  hasPendingDraft.value = false;
+  lastDraftSavedTime.value = d.updatedAt 
+    ? new Date(d.updatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    : 'Sebelumnya';
+}
+
+async function discardPendingDraft() {
+  if (currentDraftKey.value) {
+    await deleteFormDraft(currentDraftKey.value);
+  }
+  hasPendingDraft.value = false;
+  pendingDraftData.value = null;
+  lastDraftSavedTime.value = '';
+}
+
+// Watcher Auto-Save ke IndexedDB (Debounce 600ms)
+watch([formHeader, draftItems], () => {
+  if (currentView.value !== 'create') return;
+  // Jangan menimpa draf jika sedang proses cek draf atau user belum merespons banner restore draf
+  if (isCheckingDraft.value || hasPendingDraft.value) return;
+
+  const hasContent = draftItems.value.length > 0 || 
+                     formHeader.value.noDocument.trim() !== '' || 
+                     formHeader.value.keterangan.trim() !== '';
+
+  if (!hasContent) return;
+
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(async () => {
+    isAutosaving.value = true;
+    try {
+      await saveFormDraft(currentDraftKey.value, {
+        header: JSON.parse(JSON.stringify(formHeader.value)),
+        items: JSON.parse(JSON.stringify(draftItems.value)),
+        isEditing: isEditingDoc.value,
+        editingId: editingDocId.value
+      });
+      lastDraftSavedTime.value = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch (err) {
+      console.warn('Gagal auto-save ke IndexedDB:', err);
+    } finally {
+      setTimeout(() => {
+        isAutosaving.value = false;
+      }, 400);
+    }
+  }, 600);
+}, { deep: true });
 
 // Advanced Picker Modal State
 const isAdvancedPickerOpen = ref(false);
@@ -1681,10 +1981,22 @@ async function openCreatePage(type = 'IN', prefilledItems = []) {
   currentView.value = 'create';
   emit('subpage-change', `+ Transfer ${type === 'IN' ? 'Masuk (IN)' : 'Keluar (OUT)'}`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Cek apakah ada draf tersimpan di IndexedDB jika bukan prefilled dari PPIC
+  if (prefilledItems.length === 0) {
+    await checkForSavedDraft('to_draft_new');
+  } else {
+    hasPendingDraft.value = false;
+    pendingDraftData.value = null;
+  }
 }
 
 // Buka Halaman Edit Dokumen
 async function openEditPage(doc) {
+  if (!isDocEditable(doc)) {
+    alert(`Dokumen "${doc.trxCode}" sudah berstatus resmi/terposting dan TERKUNCI!\n\nDokumen resmi tidak dapat diedit untuk mencegah selisih kartu stok.`);
+    return;
+  }
   isEditingDoc.value = true;
   editingDocId.value = doc.id;
   await loadLocations();
@@ -1710,8 +2022,11 @@ async function openEditPage(doc) {
   itemNote.value = '';
 
   currentView.value = 'create';
-  emit('subpage-change', `Edit (${doc.trxCode})`);
+  emit('subpage-change', `Edit Draf (${doc.trxCode})`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Cek apakah ada draf editan belum tersimpan di IndexedDB
+  await checkForSavedDraft(`to_draft_edit_${doc.id}`);
 }
 
 function resetToList() {
@@ -1720,6 +2035,9 @@ function resetToList() {
   editingDocId.value = null;
   selectedDetailDoc.value = null;
   isAdvancedPickerOpen.value = false;
+  hasPendingDraft.value = false;
+  pendingDraftData.value = null;
+  lastDraftSavedTime.value = '';
   emit('subpage-change', '');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1731,8 +2049,8 @@ async function changeDocType(newType) {
   formHeader.value.trxCode = await generateAutoTrxCode(newType);
 }
 
-// SIMPAN ATAU PERBARUI DOKUMEN TRANSFER ORDER
-async function saveEntireDocument() {
+// SIMPAN ATAU PERBARUI DOKUMEN TRANSFER ORDER (DRAFT ATAU POSTED)
+async function saveEntireDocument(targetStatus = 'POSTED') {
   if (!formHeader.value.noDocument.trim()) {
     alert('Harap masukkan No. Dokumen (Manual)!');
     return;
@@ -1742,6 +2060,10 @@ async function saveEntireDocument() {
     return;
   }
 
+  const isDraft = targetStatus === 'DRAFT';
+  const status = isDraft ? 'DRAFT' : 'POSTED';
+  const isLocked = !isDraft;
+
   try {
     const cleanItems = JSON.parse(JSON.stringify(draftItems.value)).map(it => ({
       ...it,
@@ -1750,6 +2072,8 @@ async function saveEntireDocument() {
     const docPayload = {
       trxCode: String(formHeader.value.trxCode),
       type: String(formHeader.value.type),
+      status: status,
+      isLocked: isLocked,
       tanggal: String(formHeader.value.tanggal),
       noDocument: String(formHeader.value.noDocument).trim(),
       keterangan: String(formHeader.value.keterangan || '').trim(),
@@ -1761,8 +2085,11 @@ async function saveEntireDocument() {
 
     if (isEditingDoc.value && editingDocId.value) {
       const oldDoc = await db.transactions.get(editingDocId.value);
-      if (oldDoc) {
-        await applyTransactionStockToLocations(oldDoc, true);
+      if (!oldDoc) {
+        throw new Error('Dokumen yang ingin diedit tidak ditemukan di database.');
+      }
+      if (oldDoc.status !== 'DRAFT' || oldDoc.isLocked) {
+        throw new Error(`Dokumen "${oldDoc.trxCode}" sudah berstatus resmi/terposting (${oldDoc.status}) dan TERKUNCI. Dokumen resmi tidak dapat diubah.`);
       }
       await db.transactions.update(editingDocId.value, {
         ...docPayload,
@@ -1775,8 +2102,18 @@ async function saveEntireDocument() {
       });
     }
 
-    // Terapkan alokasi stok masuk/keluar ke item_locations
-    await applyTransactionStockToLocations(docPayload, false);
+    // Terapkan alokasi stok masuk/keluar ke item_locations HANYA JIKA BUKAN DRAFT
+    if (!isDraft) {
+      await applyTransactionStockToLocations(docPayload, false);
+    }
+
+    // Hapus draf otomatis dari IndexedDB karena sudah berhasil disimpan permanen / masuk list
+    if (currentDraftKey.value) {
+      await deleteFormDraft(currentDraftKey.value);
+    }
+    lastDraftSavedTime.value = '';
+    hasPendingDraft.value = false;
+    pendingDraftData.value = null;
 
     resetToList();
     emit('refresh-data');
@@ -1789,7 +2126,7 @@ async function saveEntireDocument() {
 function handleGlobalKeydown(e) {
   if (currentView.value === 'create' && e.ctrlKey && e.key === 'Enter') {
     e.preventDefault();
-    saveEntireDocument();
+    saveEntireDocument('POSTED');
   }
 }
 
@@ -1797,14 +2134,22 @@ function openDetailModal(doc) {
   selectedDetailDoc.value = doc;
 }
 
+function openEditFromDetail(doc) {
+  selectedDetailDoc.value = null;
+  openEditPage(doc);
+}
+
 async function deleteDoc(doc) {
-  if (confirm(`Hapus dokumen "${doc.trxCode}" (No Doc: ${doc.noDocument})?`)) {
+  if (!isDocEditable(doc)) {
+    alert(`Dokumen "${doc.trxCode}" sudah berstatus resmi/terposting dan TERKUNCI.\n\nDokumen resmi tidak dapat dihapus untuk menjaga riwayat mutasi stok.`);
+    return;
+  }
+  if (confirm(`Hapus draf dokumen "${doc.trxCode}" (No Doc: ${doc.noDocument})?`)) {
     try {
-      await applyTransactionStockToLocations(doc, true);
       await db.transactions.delete(doc.id);
       emit('refresh-data');
     } catch (err) {
-      alert('Gagal menghapus dokumen: ' + err.message);
+      alert('Gagal menghapus draf dokumen: ' + err.message);
     }
   }
 }

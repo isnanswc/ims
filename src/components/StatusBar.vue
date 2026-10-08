@@ -1,11 +1,11 @@
 <template>
-  <header class="sticky top-0 z-40 glass-panel border-b border-zinc-200/90 dark:border-zinc-800 px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 text-xs shadow-sm">
+  <header class="sticky top-0 z-40 glass-panel border-b border-zinc-200/90 dark:border-zinc-800 px-2.5 sm:px-6 py-2 flex items-center justify-between gap-1.5 sm:gap-2 text-xs shadow-sm flex-nowrap overflow-hidden">
     <!-- Breadcrumb Interaktif & Keterangan Pages -->
-    <nav class="flex items-center space-x-1 sm:space-x-1.5 min-w-0 select-none" aria-label="Breadcrumb">
+    <nav class="flex items-center space-x-1 sm:space-x-1.5 min-w-0 flex-1 overflow-hidden select-none" aria-label="Breadcrumb">
       <!-- Home / Dashboard Button -->
       <button 
         @click="$emit('navigate', 'dashboard')" 
-        class="group flex items-center gap-1.5 px-2 py-1 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        class="group flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-1 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
         title="Kembali ke Dashboard Utama"
       >
         <Home class="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
@@ -18,20 +18,20 @@
       <button 
         @click="$emit('reset-menu', activeTab)" 
         :class="[
-          'px-2 py-1 rounded-lg font-bold transition-all text-xs flex items-center gap-1 truncate',
+          'px-2 py-1 rounded-lg font-bold transition-all text-xs flex items-center gap-1 truncate max-w-[120px] sm:max-w-none shrink-0',
           subPageTitle 
             ? 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800' 
             : 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 shadow-sm'
         ]"
         :title="`Klik untuk ke Halaman Utama ${pageTitle}`"
       >
-        <span>{{ pageTitle }}</span>
+        <span class="truncate">{{ pageTitle }}</span>
       </button>
 
       <!-- Sub-Page Badge (misal: Buat Transfer Masuk, Edit, Kartu Stok SKU) -->
       <template v-if="subPageTitle">
         <ChevronRight class="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-600 shrink-0" />
-        <span class="px-2 py-0.5 rounded-lg bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 font-semibold border border-zinc-950 dark:border-white text-[11px] truncate max-w-[140px] sm:max-w-xs shadow-sm">
+        <span class="px-2 py-0.5 rounded-lg bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 font-semibold border border-zinc-950 dark:border-white text-[10.5px] sm:text-[11px] truncate max-w-[100px] xs:max-w-[140px] sm:max-w-xs shadow-sm">
           {{ subPageTitle }}
         </span>
       </template>
@@ -43,13 +43,17 @@
     </nav>
 
     <!-- Status Badges & Real-time Info -->
-    <div class="flex items-center space-x-2.5 text-[11px]">
-      <!-- Status Penyimpanan IndexedDB Monokrom Bersih -->
-      <div class="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700 font-medium">
+    <div class="flex items-center space-x-1.5 sm:space-x-2.5 text-[11px] shrink-0">
+      <!-- Status Penyimpanan IndexedDB Super Ringkas di Layar HP -->
+      <div 
+        class="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700 font-medium shrink-0"
+        title="Penyimpanan Lokal: IndexedDB Aktif & Offline Ready"
+      >
         <span class="w-1.5 h-1.5 rounded-full bg-zinc-900 dark:bg-white animate-pulse"></span>
         <HardDrive class="w-3 h-3 text-zinc-700 dark:text-zinc-300" />
         <span class="hidden md:inline">Penyimpanan Lokal:</span>
-        <span class="font-bold">IndexedDB Aktif</span>
+        <span class="font-bold hidden sm:inline">IndexedDB Aktif</span>
+        <span class="font-bold sm:hidden text-[10px]">IDB</span>
       </div>
 
       <!-- Status Waktu Sistem -->

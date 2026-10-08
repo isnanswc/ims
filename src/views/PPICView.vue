@@ -562,18 +562,18 @@
                     Satuan: {{ ppicCalcData.satuan }}
                   </span>
                   
-                  <!-- Dropdown Switcher Barang Lain -->
+                  <!-- Dropdown Switcher Barang Lain (Smart Search) -->
                   <div class="flex items-center gap-1.5 ml-1">
-                    <span class="text-[9px] text-zinc-400 font-mono">Ganti:</span>
-                    <select 
-                      :value="targetItem?.uniqCode" 
-                      @change="onSwitchSimulatedItem($event.target.value)"
-                      class="px-2 py-0.5 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-md text-[10px] font-bold text-zinc-800 dark:text-zinc-200 outline-none cursor-pointer"
-                    >
-                      <option v-for="it in itemsWithStock" :key="it.uniqCode" :value="it.uniqCode">
-                        {{ it.uniqCode }} - {{ it.deskripsi }} (Stok: {{ it.currentStock }})
-                      </option>
-                    </select>
+                    <span class="text-[9px] text-zinc-400 font-mono shrink-0">Ganti:</span>
+                    <div class="w-40 xs:w-56 sm:w-64">
+                      <SmartSearchSelect 
+                        :model-value="targetItem?.uniqCode" 
+                        :options="itemSelectOptions"
+                        @update:model-value="onSwitchSimulatedItem"
+                        placeholder="Pilih item..."
+                        search-placeholder="Ketik SKU atau nama..."
+                      />
+                    </div>
                   </div>
                 </div>
                 <h4 class="font-bold text-sm text-zinc-950 dark:text-white mt-1">
@@ -1052,6 +1052,7 @@
 import { ref, computed } from 'vue';
 import { db, calculateItemPPICMetrics } from '../database/db';
 import Pagination from '../components/Pagination.vue';
+import SmartSearchSelect from '../components/SmartSearchSelect.vue';
 import { 
   Calculator, 
   Search, 
@@ -1244,6 +1245,15 @@ function openGeneralPPICCalculator() {
 }
 
 // Ganti Barang Langsung dari Dalam Modal Simulasi
+const itemSelectOptions = computed(() => {
+  return props.itemsWithStock.map(it => ({
+    value: it.uniqCode,
+    label: it.uniqCode,
+    sublabel: it.deskripsi,
+    badge: `Stok: ${it.currentStock} ${it.satuan}`
+  }));
+});
+
 function onSwitchSimulatedItem(uniqCode) {
   const found = props.itemsWithStock.find(i => i.uniqCode === uniqCode);
   if (found) {

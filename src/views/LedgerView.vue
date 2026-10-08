@@ -211,13 +211,12 @@
                 <td class="py-2.5 px-3.5 text-center" @click.stop>
                   <button 
                     @click="openItemDetailPage(item.uniqCode)"
-                    class="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 mx-auto overflow-hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-sm hover:shadow-md hover:shadow-emerald-500/25 border border-emerald-400/30 active:scale-95"
+                    class="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 mx-auto bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 shadow-xs border border-zinc-950 dark:border-white active:scale-95 cursor-pointer"
                     title="Buka Kartu Stok & Audit Mutasi"
                   >
-                    <span class="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    <FileText class="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                    <FileText class="w-3.5 h-3.5 shrink-0" />
                     <span class="tracking-wide">Kartu Stok</span>
-                    <ArrowRight class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight class="w-3.5 h-3.5 shrink-0 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </td>
               </tr>
@@ -243,18 +242,18 @@
     <!-- ============================================================== -->
     <div v-else-if="currentMode === 'detail' && currentItem" class="space-y-4">
       <!-- Top Action Navigation: Kembali & Judul -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <button 
           @click="resetToList()"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-colors shadow-sm group"
+          class="flex items-center justify-center sm:justify-start gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-xs group w-full sm:w-auto cursor-pointer"
         >
-          <ArrowLeft class="w-4 h-4 text-emerald-600 group-hover:-translate-x-0.5 transition-transform" />
+          <ArrowLeft class="w-4 h-4 text-zinc-600 dark:text-zinc-400 group-hover:-translate-x-0.5 transition-transform" />
           <span>&larr; Kembali ke Daftar Item Ledger</span>
         </button>
 
         <button 
           @click="exportLedgerToExcel"
-          class="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs shadow-md shadow-emerald-600/20 transition-all"
+          class="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl font-bold text-xs shadow-xs border border-zinc-950 dark:border-white transition-all w-full sm:w-auto cursor-pointer"
         >
           <FileSpreadsheet class="w-4 h-4" />
           <span>Ekspor Kartu Stok Excel (.xlsx)</span>
@@ -267,124 +266,127 @@
           <div>
             <div class="flex flex-wrap items-center gap-2">
               <span class="text-xs font-mono font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded">
-                {{ currentItem.uniqCode }}
+                {{ currentItem?.uniqCode }}
               </span>
-              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">{{ currentItem.deskripsi }}</h2>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">{{ currentItem?.deskripsi }}</h2>
               <!-- PPIC Status Badge -->
               <span 
                 :class="[
                   'px-2.5 py-0.5 rounded-full text-[10px] font-bold border inline-flex items-center gap-1',
-                  currentItem.stockLevel === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800' :
-                  currentItem.stockLevel === 'REORDER' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800' :
-                  currentItem.stockLevel === 'OVERSTOCK' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border-purple-300 dark:border-purple-800' :
+                  currentItem?.stockLevel === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border-rose-300 dark:border-rose-800' :
+                  currentItem?.stockLevel === 'REORDER' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-300 dark:border-amber-800' :
+                  currentItem?.stockLevel === 'OVERSTOCK' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-400 border-purple-300 dark:border-purple-800' :
                   'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800'
                 ]"
               >
                 <span class="w-1.5 h-1.5 rounded-full" :class="[
-                  currentItem.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
-                  currentItem.stockLevel === 'REORDER' ? 'bg-amber-500' :
-                  currentItem.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
+                  currentItem?.stockLevel === 'CRITICAL' ? 'bg-rose-500' :
+                  currentItem?.stockLevel === 'REORDER' ? 'bg-amber-500' :
+                  currentItem?.stockLevel === 'OVERSTOCK' ? 'bg-purple-500' : 'bg-emerald-500'
                 ]"></span>
-                <span>{{ currentItem.stockLevelLabel || 'Optimal' }}</span>
+                <span>{{ currentItem?.stockLevelLabel || 'Optimal' }}</span>
               </span>
             </div>
             <p class="text-[11px] text-slate-400 mt-1">
-              Satuan: <strong class="text-slate-700 dark:text-slate-300">{{ currentItem.satuan }}</strong> | 
-              Min. Stok (ROP): <strong class="text-slate-700 dark:text-slate-300">{{ currentItem.minStock || 0 }}</strong> | 
-              Maks. Stok: <strong class="text-slate-700 dark:text-slate-300">{{ currentItem.maxStock || '-' }}</strong> | 
-              Lead Time: <strong class="text-slate-700 dark:text-slate-300">{{ currentItem.leadTime || 7 }} hari</strong>
+              Satuan: <strong class="text-slate-700 dark:text-slate-300">{{ currentItem?.satuan }}</strong> | 
+              Min. Stok (ROP): <strong class="text-slate-700 dark:text-slate-300">{{ currentItem?.minStock || 0 }}</strong> | 
+              Maks. Stok: <strong class="text-slate-700 dark:text-slate-300">{{ currentItem?.maxStock || '-' }}</strong> | 
+              Lead Time: <strong class="text-slate-700 dark:text-slate-300">{{ currentItem?.leadTime || 7 }} hari</strong>
             </p>
           </div>
 
           <!-- Quick Stat Metrics & PPIC Button -->
-          <div class="flex flex-wrap items-center gap-2 text-xs">
-            <div class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-500/20 text-center">
-              <span class="text-[10px] text-slate-400 block">Total Masuk</span>
-              <strong class="text-emerald-600 dark:text-emerald-400 font-bold">+{{ ledgerStats.totalIn }}</strong>
-            </div>
-            <div class="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-500/20 text-center">
-              <span class="text-[10px] text-slate-400 block">Total Keluar</span>
-              <strong class="text-rose-600 dark:text-rose-400 font-bold">-{{ ledgerStats.totalOut }}</strong>
-            </div>
-            <div class="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-500/20 text-center">
-              <span class="text-[10px] text-slate-400 block">Saldo Akhir</span>
-              <strong class="text-blue-600 dark:text-blue-400 font-extrabold text-sm">{{ ledgerStats.currentBalance }}</strong>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs w-full lg:w-auto">
+            <div class="grid grid-cols-3 gap-2">
+              <div class="px-2.5 py-1.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-center">
+                <span class="text-[10px] text-zinc-500 block">Total Masuk</span>
+                <strong class="text-emerald-700 dark:text-emerald-400 font-bold text-xs sm:text-sm">+{{ ledgerStats.totalIn }}</strong>
+              </div>
+              <div class="px-2.5 py-1.5 bg-rose-500/10 rounded-xl border border-rose-500/20 text-center">
+                <span class="text-[10px] text-zinc-500 block">Total Keluar</span>
+                <strong class="text-rose-700 dark:text-rose-400 font-bold text-xs sm:text-sm">-{{ ledgerStats.totalOut }}</strong>
+              </div>
+              <div class="px-2.5 py-1.5 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl border border-zinc-200 dark:border-zinc-700 text-center">
+                <span class="text-[10px] text-zinc-500 block">Saldo Akhir</span>
+                <strong class="text-zinc-950 dark:text-white font-extrabold text-xs sm:text-sm">{{ ledgerStats.currentBalance }}</strong>
+              </div>
             </div>
 
-            <!-- Tombol Buka Kalkulator PPIC -->
-            <button 
-              @click="openPPICModal"
-              class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all ml-1 cursor-pointer"
-              title="Hitung Parameter Min-Max PPIC Berdasarkan Mutasi"
-            >
-              <Calculator class="w-3.5 h-3.5" />
-              <span>⚡ Kalkulator PPIC</span>
-            </button>
+            <!-- Tombol Aksi Header (Hitam & Putih Monokrom) -->
+            <div class="grid grid-cols-2 sm:flex items-center gap-2">
+              <button 
+                @click="openPPICModal"
+                class="flex items-center justify-center gap-1.5 px-3 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer text-center"
+                title="Hitung Parameter Min-Max PPIC Berdasarkan Mutasi"
+              >
+                <Calculator class="w-3.5 h-3.5 shrink-0" />
+                <span>⚡ Kalkulator PPIC</span>
+              </button>
 
-            <!-- Tombol Ekspor Kartu Stok -->
-            <button 
-              @click="downloadStockCardExcel"
-              class="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-bold border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all ml-1 cursor-pointer"
-              title="Ekspor Kartu Stok & Riwayat Mutasi ke Excel (.xlsx)"
-            >
-              <Download class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Ekspor Kartu Stok</span>
-            </button>
+              <button 
+                @click="downloadStockCardExcel"
+                class="flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-bold border border-zinc-300 dark:border-zinc-700 shadow-xs transition-all cursor-pointer text-center"
+                title="Ekspor Kartu Stok & Riwayat Mutasi ke Excel (.xlsx)"
+              >
+                <Download class="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300 shrink-0" />
+                <span>Ekspor Kartu Stok</span>
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Filter Range Waktu Tertentu -->
         <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1 text-xs">
-          <!-- Quick Preset Buttons -->
+          <!-- Quick Preset Buttons (Monokrom High-Contrast) -->
           <div class="flex flex-wrap items-center gap-1.5 font-semibold text-[11px]">
-            <span class="text-slate-400 text-[10px] uppercase font-bold mr-1">Filter Waktu:</span>
+            <span class="text-zinc-400 text-[10px] uppercase font-bold mr-1">Filter Waktu:</span>
             <button 
               @click="applyDatePreset(7)"
-              :class="['px-2.5 py-1 rounded-lg transition-all', activePreset === 7 ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200']"
+              :class="['px-2.5 py-1 rounded-lg transition-all cursor-pointer', activePreset === 7 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs font-bold' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700']"
             >
               7 Hari
             </button>
             <button 
               @click="applyDatePreset(30)"
-              :class="['px-2.5 py-1 rounded-lg transition-all', activePreset === 30 ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200']"
+              :class="['px-2.5 py-1 rounded-lg transition-all cursor-pointer', activePreset === 30 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs font-bold' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700']"
             >
               30 Hari
             </button>
             <button 
               @click="applyDatePreset(90)"
-              :class="['px-2.5 py-1 rounded-lg transition-all', activePreset === 90 ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200']"
+              :class="['px-2.5 py-1 rounded-lg transition-all cursor-pointer', activePreset === 90 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs font-bold' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700']"
             >
               3 Bulan Terakhir
             </button>
             <button 
               @click="applyDatePreset(0)"
-              :class="['px-2.5 py-1 rounded-lg transition-all', activePreset === 0 ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200']"
+              :class="['px-2.5 py-1 rounded-lg transition-all cursor-pointer', activePreset === 0 ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs font-bold' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700']"
             >
               Semua Waktu
             </button>
           </div>
 
           <!-- Custom Date Input -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
             <input 
               v-model="startDate" 
               type="date"
               @change="activePreset = null"
-              class="px-2.5 py-1 glass-input rounded-lg text-xs"
+              class="flex-1 sm:flex-initial min-w-0 px-2.5 py-1.5 glass-input rounded-lg text-xs"
               title="Mulai Tanggal"
             />
-            <span class="text-slate-400">s/d</span>
+            <span class="text-slate-400 shrink-0">s/d</span>
             <input 
               v-model="endDate" 
               type="date"
               @change="activePreset = null"
-              class="px-2.5 py-1 glass-input rounded-lg text-xs"
+              class="flex-1 sm:flex-initial min-w-0 px-2.5 py-1.5 glass-input rounded-lg text-xs"
               title="Sampai Tanggal"
             />
             <button 
               v-if="startDate || endDate" 
               @click="applyDatePreset(0)"
-              class="px-2 py-1 text-slate-400 hover:text-slate-600 text-xs"
+              class="px-2 py-1.5 text-slate-400 hover:text-slate-600 text-xs shrink-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Reset Filter"
             >
               <RotateCcw class="w-3.5 h-3.5" />
@@ -394,19 +396,135 @@
       </div>
 
       <!-- ============================================================== -->
-      <!-- DIAGRAM LINE KELUAR MASUK BARANG (3 LINE: MASUK, KELUAR, STOK)  -->
+      <!-- DIAGRAM GARIS TIMELINE KONDISI STOK & AMBANG BATAS PERSAMAAN   -->
       <!-- ============================================================== -->
-      <div class="glass-card p-4 sm:p-5 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 dark:border-slate-800 pb-2.5">
-          <div class="flex items-center space-x-2">
-            <TrendingUp class="w-4 h-4 text-emerald-600" />
-            <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-              Grafik Tren Mutasi & Saldo Berjalan (3 Lines Chart)
-            </h3>
+      <div class="glass-card p-4 sm:p-5 space-y-3.5">
+        <!-- Header & Switcher Mode Visualisasi -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200/80 dark:border-zinc-800 pb-3">
+          <div class="flex items-center space-x-2.5">
+            <div class="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+              <Activity v-if="chartVisualizationMode === 'timeline'" class="w-4 h-4" />
+              <TrendingUp v-else class="w-4 h-4" />
+            </div>
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-zinc-950 dark:text-white flex items-center gap-2">
+                <span>{{ chartVisualizationMode === 'timeline' ? 'Timeline Kondisi Stok & Ambang Batas' : 'Grafik Tren Mutasi (3 Lines Chart)' }}</span>
+                <span 
+                  v-if="chartVisualizationMode === 'timeline' && currentItem" 
+                  class="text-[10px] px-2 py-0.5 rounded-full font-bold border"
+                  :class="currentItemStatus.badgeClass"
+                >
+                  {{ currentItemStatus.label }}
+                </span>
+              </h3>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                {{ chartVisualizationMode === 'timeline' 
+                  ? 'Garis berubah warna otomatis sesuai zona stok: Hijau (Aman), Kuning (≤ ROP), Merah (≤ Safety Stock).' 
+                  : 'Pergerakan volume barang masuk (IN), keluar (OUT), dan akumulasi saldo akhir.' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Switcher Mode Button Group (Monokrom High-Contrast) -->
+          <div class="w-full sm:w-auto grid grid-cols-2 sm:flex items-center p-1 bg-zinc-100 dark:bg-zinc-800/90 rounded-xl border border-zinc-200 dark:border-zinc-700/80 text-xs gap-1">
+            <button 
+              type="button"
+              @click="chartVisualizationMode = 'timeline'"
+              :class="[
+                'flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer text-center text-[11px] sm:text-xs',
+                chartVisualizationMode === 'timeline' 
+                  ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs' 
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+              ]"
+            >
+              <ShieldCheck class="w-3.5 h-3.5 shrink-0" />
+              <span>Timeline Ambang Batas</span>
+            </button>
+            <button 
+              type="button"
+              @click="chartVisualizationMode = 'lines'"
+              :class="[
+                'flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer text-center text-[11px] sm:text-xs',
+                chartVisualizationMode === 'lines' 
+                  ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 shadow-xs' 
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+              ]"
+            >
+              <TrendingUp class="w-3.5 h-3.5 shrink-0" />
+              <span>Tren 3 Garis</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Parameter Ambang Batas (Tampil pada mode Timeline) -->
+        <div v-if="chartVisualizationMode === 'timeline'" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+            <div class="text-[10px] text-slate-400 font-medium flex items-center justify-between">
+              <span class="truncate">Safety Stock</span>
+              <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+            </div>
+            <div class="text-xs sm:text-sm font-extrabold text-rose-600 dark:text-rose-400 mt-0.5 truncate">
+              {{ effectiveSafetyStock }} <span class="text-[10px] font-normal text-slate-400">{{ currentItem?.satuan }}</span>
+            </div>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+            <div class="text-[10px] text-slate-400 font-medium flex items-center justify-between">
+              <span class="truncate">Reorder Point (ROP)</span>
+              <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+            </div>
+            <div class="text-xs sm:text-sm font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 truncate">
+              {{ effectiveRop }} <span class="text-[10px] font-normal text-slate-400">{{ currentItem?.satuan }}</span>
+            </div>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+            <div class="text-[10px] text-slate-400 font-medium flex items-center justify-between">
+              <span class="truncate">Kapasitas Maksimal</span>
+              <span class="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+            </div>
+            <div class="text-xs sm:text-sm font-extrabold text-purple-600 dark:text-purple-400 mt-0.5 truncate">
+              {{ effectiveMaxStock }} <span class="text-[10px] font-normal text-slate-400">{{ currentItem?.satuan }}</span>
+            </div>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800">
+            <div class="text-[10px] text-slate-400 font-medium flex items-center justify-between">
+              <span class="truncate">Pelanggaran Batas</span>
+              <AlertTriangle v-if="breachCount > 0" class="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <CheckCircle2 v-else class="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            </div>
+            <div class="text-xs sm:text-sm font-extrabold mt-0.5 truncate" :class="breachCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'">
+              {{ breachCount }} <span class="text-[10px] font-normal text-slate-400">Kejadian</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend Ribbon -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-semibold pt-0.5">
+          <!-- Legend Timeline Mode -->
+          <div v-if="chartVisualizationMode === 'timeline'" class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <div class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-emerald-500"></span>
+              <span class="text-emerald-700 dark:text-emerald-400">Aman (> ROP)</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-amber-500"></span>
+              <span class="text-amber-700 dark:text-amber-400">Waspada (≤ ROP)</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-rose-500"></span>
+              <span class="text-rose-700 dark:text-rose-400">Kritis (≤ Safety Stock)</span>
+            </div>
+            <div v-if="effectiveMaxStock > 0" class="flex items-center space-x-1.5">
+              <span class="w-3 h-1.5 rounded-full bg-purple-500"></span>
+              <span class="text-purple-700 dark:text-purple-400">Overstock (> Maks)</span>
+            </div>
+            <div class="flex items-center space-x-1.5 text-slate-400">
+              <span class="w-2.5 h-2.5 rounded-full border border-dashed border-rose-500"></span>
+              <span>Titik Pelanggaran</span>
+            </div>
           </div>
 
           <!-- Legend 3 Garis -->
-          <div class="flex items-center space-x-3 text-[11px] font-semibold">
+          <div v-else class="flex items-center space-x-3 text-[11px]">
             <div class="flex items-center space-x-1.5">
               <span class="w-3 h-1 rounded-full bg-emerald-500"></span>
               <span class="text-emerald-700 dark:text-emerald-400">Masuk (IN)</span>
@@ -416,9 +534,13 @@
               <span class="text-rose-700 dark:text-rose-400">Keluar (OUT)</span>
             </div>
             <div class="flex items-center space-x-1.5">
-              <span class="w-3 h-1 rounded-full bg-blue-500"></span>
-              <span class="text-blue-700 dark:text-blue-400">Saldo Stok</span>
+              <span class="w-3 h-1 rounded-full bg-zinc-900 dark:bg-zinc-100"></span>
+              <span class="text-zinc-900 dark:text-zinc-100 font-bold">Saldo Stok</span>
             </div>
+          </div>
+
+          <div class="text-[10px] text-slate-400 ml-auto">
+            Arah waktu: Lama &rarr; Baru (Kiri ke Kanan)
           </div>
         </div>
 
@@ -430,17 +552,64 @@
           <div v-else class="relative w-full">
             <svg 
               :viewBox="`0 0 ${chartWidth} ${chartHeight}`" 
-              class="w-full h-56 sm:h-64 overflow-visible"
+              class="w-full h-60 sm:h-72 overflow-visible"
             >
               <defs>
                 <!-- Gradients for subtle area fills -->
                 <linearGradient id="stockAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15" />
-                  <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0" />
+                  <stop offset="0%" stop-color="#71717a" stop-opacity="0.12" />
+                  <stop offset="100%" stop-color="#71717a" stop-opacity="0.0" />
+                </linearGradient>
+                <linearGradient id="timelineAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#10b981" stop-opacity="0.08" />
+                  <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
                 </linearGradient>
               </defs>
 
-              <!-- Horizontal Grid Lines -->
+              <!-- Threshold Zones Background Shading (Hanya saat mode Timeline) -->
+              <g v-if="chartVisualizationMode === 'timeline'">
+                <!-- Overstock Zone (> Max) -->
+                <rect 
+                  v-if="effectiveMaxStock > 0"
+                  :x="paddingLeft" 
+                  :y="getY(maxChartValue)" 
+                  :width="chartWidth - paddingLeft - paddingRight" 
+                  :height="Math.max(0, getY(effectiveMaxStock) - getY(maxChartValue))" 
+                  fill="#a855f7" 
+                  fill-opacity="0.05" 
+                />
+                <!-- Optimal / Aman Zone (ROP to Max) -->
+                <rect 
+                  :x="paddingLeft" 
+                  :y="effectiveMaxStock > 0 ? getY(effectiveMaxStock) : getY(maxChartValue)" 
+                  :width="chartWidth - paddingLeft - paddingRight" 
+                  :height="Math.max(0, (effectiveRop > 0 ? getY(effectiveRop) : getY(0)) - (effectiveMaxStock > 0 ? getY(effectiveMaxStock) : getY(maxChartValue)))" 
+                  fill="#10b981" 
+                  fill-opacity="0.06" 
+                />
+                <!-- Waspada / Reorder Zone (Safety Stock to ROP) -->
+                <rect 
+                  v-if="effectiveRop > 0"
+                  :x="paddingLeft" 
+                  :y="getY(effectiveRop)" 
+                  :width="chartWidth - paddingLeft - paddingRight" 
+                  :height="Math.max(0, (effectiveSafetyStock > 0 ? getY(effectiveSafetyStock) : getY(0)) - getY(effectiveRop))" 
+                  fill="#f59e0b" 
+                  fill-opacity="0.08" 
+                />
+                <!-- Kritis / Bahaya Zone (0 to Safety Stock) -->
+                <rect 
+                  v-if="effectiveSafetyStock > 0"
+                  :x="paddingLeft" 
+                  :y="getY(effectiveSafetyStock)" 
+                  :width="chartWidth - paddingLeft - paddingRight" 
+                  :height="Math.max(0, getY(0) - getY(effectiveSafetyStock))" 
+                  fill="#ef4444" 
+                  fill-opacity="0.10" 
+                />
+              </g>
+
+              <!-- Horizontal Grid Lines (Standard) -->
               <line 
                 v-for="(val, idx) in yAxisTicks" 
                 :key="idx"
@@ -453,7 +622,7 @@
                 stroke-dasharray="3 3"
               />
 
-              <!-- Y-Axis Values -->
+              <!-- Y-Axis Values (Left) -->
               <text 
                 v-for="(val, idx) in yAxisTicks" 
                 :key="'txt-' + idx"
@@ -465,97 +634,288 @@
                 {{ val }}
               </text>
 
-              <!-- Area Fill under Stock Line -->
-              <path :d="stockAreaPath" fill="url(#stockAreaGrad)" />
+              <!-- ============================================== -->
+              <!-- KONTEN MODE 1: TIMELINE AMBANG BATAS           -->
+              <!-- ============================================== -->
+              <g v-if="chartVisualizationMode === 'timeline'">
+                <!-- Area Fill di bawah garis trajectory -->
+                <path :d="stockAreaPath" fill="url(#timelineAreaGrad)" />
 
-              <!-- Line 1: Inbound (Masuk - Emerald) -->
-              <path 
-                :d="inLinePath" 
-                fill="none" 
-                stroke="#10b981" 
-                stroke-width="2.5" 
-                stroke-linecap="round" 
-                stroke-linejoin="round"
-              />
+                <!-- Garis Batas Ambang (Threshold Boundary Guidelines) -->
+                <!-- Max Guideline -->
+                <g v-if="effectiveMaxStock > 0">
+                  <line 
+                    :x1="paddingLeft" 
+                    :y1="getY(effectiveMaxStock)" 
+                    :x2="chartWidth - paddingRight" 
+                    :y2="getY(effectiveMaxStock)" 
+                    stroke="#a855f7" 
+                    stroke-dasharray="4 3" 
+                    stroke-width="1.5" 
+                    opacity="0.8"
+                  />
+                  <text 
+                    :x="chartWidth - paddingRight + 6" 
+                    :y="getY(effectiveMaxStock) + 3" 
+                    class="fill-purple-600 dark:fill-purple-400 text-[10px] font-bold font-mono select-none"
+                  >
+                    Maks: {{ effectiveMaxStock }}
+                  </text>
+                </g>
 
-              <!-- Line 2: Outbound (Keluar - Rose) -->
-              <path 
-                :d="outLinePath" 
-                fill="none" 
-                stroke="#f43f5e" 
-                stroke-width="2.5" 
-                stroke-linecap="round" 
-                stroke-linejoin="round"
-              />
+                <!-- ROP Guideline -->
+                <g v-if="effectiveRop > 0">
+                  <line 
+                    :x1="paddingLeft" 
+                    :y1="getY(effectiveRop)" 
+                    :x2="chartWidth - paddingRight" 
+                    :y2="getY(effectiveRop)" 
+                    stroke="#f59e0b" 
+                    stroke-dasharray="4 3" 
+                    stroke-width="1.5" 
+                    opacity="0.85"
+                  />
+                  <text 
+                    :x="chartWidth - paddingRight + 6" 
+                    :y="getY(effectiveRop) + 3" 
+                    class="fill-amber-600 dark:fill-amber-400 text-[10px] font-bold font-mono select-none"
+                  >
+                    ROP: {{ effectiveRop }}
+                  </text>
+                </g>
 
-              <!-- Line 3: Stock Balance (Saldo Berjalan - Blue) -->
-              <path 
-                :d="stockLinePath" 
-                fill="none" 
-                stroke="#3b82f6" 
-                stroke-width="3" 
-                stroke-linecap="round" 
-                stroke-linejoin="round"
-              />
+                <!-- Safety Stock Guideline -->
+                <g v-if="effectiveSafetyStock > 0">
+                  <line 
+                    :x1="paddingLeft" 
+                    :y1="getY(effectiveSafetyStock)" 
+                    :x2="chartWidth - paddingRight" 
+                    :y2="getY(effectiveSafetyStock)" 
+                    stroke="#ef4444" 
+                    stroke-dasharray="4 3" 
+                    stroke-width="1.5" 
+                    opacity="0.9"
+                  />
+                  <text 
+                    :x="chartWidth - paddingRight + 6" 
+                    :y="getY(effectiveSafetyStock) + 3" 
+                    class="fill-rose-600 dark:fill-rose-400 text-[10px] font-bold font-mono select-none"
+                  >
+                    Safety: {{ effectiveSafetyStock }}
+                  </text>
+                </g>
 
-              <!-- Data Dots & Hover Hitbox -->
+                <!-- Baseline 0 Guideline -->
+                <line 
+                  :x1="paddingLeft" 
+                  :y1="getY(0)" 
+                  :x2="chartWidth - paddingRight" 
+                  :y2="getY(0)" 
+                  stroke="currentColor" 
+                  class="text-slate-300 dark:text-slate-700" 
+                  stroke-width="1"
+                />
+                <text 
+                  :x="chartWidth - paddingRight + 6" 
+                  :y="getY(0) + 3" 
+                  class="fill-slate-400 dark:fill-slate-500 text-[10px] font-mono select-none"
+                >
+                  0 (Habis)
+                </text>
+
+                <!-- Dynamic Multi-Color Segments (Warna Garis Berubah Berdasarkan Kondisi Stok) -->
+                <line 
+                  v-for="(seg, sIdx) in timelineSegments" 
+                  :key="'seg-' + sIdx"
+                  :x1="seg.x1" 
+                  :y1="seg.y1" 
+                  :x2="seg.x2" 
+                  :y2="seg.y2" 
+                  :stroke="seg.color" 
+                  stroke-width="3.5" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"
+                />
+              </g>
+
+              <!-- ============================================== -->
+              <!-- KONTEN MODE 2: TREN 3 GARIS (IN, OUT, SALDO)   -->
+              <!-- ============================================== -->
+              <g v-else>
+                <!-- Area Fill under Stock Line -->
+                <path :d="stockAreaPath" fill="url(#stockAreaGrad)" />
+
+                <!-- Line 1: Inbound (Masuk - Emerald) -->
+                <path 
+                  :d="inLinePath" 
+                  fill="none" 
+                  stroke="#10b981" 
+                  stroke-width="2.5" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"
+                />
+
+                <!-- Line 2: Outbound (Keluar - Rose) -->
+                <path 
+                  :d="outLinePath" 
+                  fill="none" 
+                  stroke="#f43f5e" 
+                  stroke-width="2.5" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"
+                />
+
+                <!-- Line 3: Stock Balance (Saldo Berjalan - Hitam / Putih Monokrom) -->
+                <path 
+                  :d="stockLinePath" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  class="text-zinc-950 dark:text-zinc-100"
+                  stroke-width="3" 
+                  stroke-linecap="round" 
+                  stroke-linejoin="round"
+                />
+              </g>
+
+              <!-- Background Hit-box untuk dismiss tooltip saat tap/klik di luar titik -->
+              <rect :width="chartWidth" :height="chartHeight" fill="transparent" class="cursor-default" @click="dismissActivePoint" />
+
+              <!-- ============================================== -->
+              <!-- TITIK DATA, MARKER PELANGGARAN & HOVER HITBOX  -->
+              <!-- ============================================== -->
               <g v-for="(p, idx) in chartDataPoints" :key="'p-' + idx">
-                <!-- Dot Masuk -->
-                <circle 
-                  v-if="p.inQty > 0"
-                  :cx="getX(idx)" 
-                  :cy="getY(p.inQty)" 
-                  r="3.5" 
-                  fill="#10b981" 
-                  class="stroke-white dark:stroke-slate-900 stroke-2"
-                />
-                <!-- Dot Keluar -->
-                <circle 
-                  v-if="p.outQty > 0"
-                  :cx="getX(idx)" 
-                  :cy="getY(p.outQty)" 
-                  r="3.5" 
-                  fill="#f43f5e" 
-                  class="stroke-white dark:stroke-slate-900 stroke-2"
-                />
-                <!-- Dot Saldo Stok -->
+                <!-- Mode 3 Garis: Dot Masuk & Keluar -->
+                <template v-if="chartVisualizationMode === 'lines'">
+                  <circle 
+                    v-if="p.inQty > 0"
+                    :cx="getX(idx)" 
+                    :cy="getY(p.inQty)" 
+                    r="3.5" 
+                    fill="#10b981" 
+                    class="stroke-white dark:stroke-zinc-900 stroke-2 pointer-events-none"
+                  />
+                  <circle 
+                    v-if="p.outQty > 0"
+                    :cx="getX(idx)" 
+                    :cy="getY(p.outQty)" 
+                    r="3.5" 
+                    fill="#f43f5e" 
+                    class="stroke-white dark:stroke-zinc-900 stroke-2 pointer-events-none"
+                  />
+                </template>
+
+                <!-- Mode Timeline: Aura Ring Pelanggaran (Breach Marker Ring) -->
+                <template v-if="chartVisualizationMode === 'timeline' && getStockStatus(p.balance).isBreach">
+                  <circle 
+                    :cx="getX(idx)" 
+                    :cy="getY(p.balance)" 
+                    :r="hoveredPoint?.idx === idx ? 9.5 : 8" 
+                    fill="none" 
+                    :stroke="getStockStatus(p.balance).color" 
+                    stroke-width="1.5" 
+                    stroke-dasharray="2 2"
+                    opacity="0.85"
+                    class="pointer-events-none"
+                  />
+                </template>
+
+                <!-- Titik Saldo Stok (Visual Dot) -->
                 <circle 
                   :cx="getX(idx)" 
                   :cy="getY(p.balance)" 
-                  r="4" 
-                  fill="#3b82f6" 
-                  class="stroke-white dark:stroke-slate-900 stroke-2 cursor-pointer hover:r-6 transition-all"
-                  @mouseenter="hoveredPoint = { ...p, x: getX(idx), y: getY(p.balance) }"
-                  @mouseleave="hoveredPoint = null"
+                  :r="chartVisualizationMode === 'timeline' ? (hoveredPoint?.idx === idx ? 6 : 4.5) : (hoveredPoint?.idx === idx ? 5.5 : 4)" 
+                  :fill="chartVisualizationMode === 'timeline' ? getStockStatus(p.balance).color : 'currentColor'" 
+                  class="stroke-white dark:stroke-zinc-950 stroke-2 pointer-events-none text-zinc-900 dark:text-zinc-100"
                 />
 
-                <!-- X Axis Date Labels (Tampilkan berkala agar tidak menumpuk) -->
+                <!-- Hitbox Sentuh Luas (18px radius) untuk Kemudahan Tap di Layar Sentuh HP -->
+                <circle 
+                  :cx="getX(idx)" 
+                  :cy="getY(p.balance)" 
+                  r="18" 
+                  fill="transparent" 
+                  class="cursor-pointer"
+                  @touchstart.passive="handleTouchStart"
+                  @mouseenter="setHoveredPoint(p, idx)"
+                  @mouseleave="clearHoveredPoint"
+                  @click.stop="toggleHoveredPoint(p, idx)"
+                />
+
+                <!-- X Axis Date Labels (Tampilkan berkala agar rapi) -->
                 <text 
-                  v-if="showXLabel(idx)"
+                  v-if="showXLabel(idx)" 
                   :x="getX(idx)" 
                   :y="chartHeight - 4" 
                   text-anchor="middle" 
-                  class="fill-slate-400 text-[9px] font-mono select-none"
+                  class="fill-zinc-400 text-[9px] font-mono select-none pointer-events-none"
                 >
                   {{ formatShortDate(p.tanggal) }}
                 </text>
               </g>
             </svg>
 
-            <!-- Floating Hover Tooltip -->
+            <!-- Floating Hover Tooltip Cerdas (Edge-Clamped, Rock-Solid, No Glitch) -->
             <div 
               v-if="hoveredPoint"
-              class="absolute z-30 p-2.5 rounded-xl glass-panel border border-slate-200 dark:border-slate-700 shadow-xl text-xs pointer-events-none transform -translate-x-1/2 -translate-y-full mb-3"
-              :style="{ left: `${(hoveredPoint.x / chartWidth) * 100}%`, top: `${(hoveredPoint.y / chartHeight) * 100}%` }"
+              class="absolute z-30 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl text-xs mb-3 min-w-[210px] max-w-[260px] backdrop-blur-md bg-white/95 dark:bg-zinc-900/95"
+              :class="isPinned ? 'pointer-events-auto ring-1 ring-zinc-950/20 dark:ring-white/20' : 'pointer-events-none'"
+              :style="tooltipStyle"
             >
-              <div class="font-bold text-slate-800 dark:text-slate-100 border-b pb-1 mb-1 font-mono">
-                {{ hoveredPoint.tanggal }}
+              <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-1.5 mb-1.5">
+                <span class="font-bold text-zinc-900 dark:text-zinc-100 font-mono flex items-center gap-1.5">
+                  <span v-if="isPinned" class="text-[10px]" title="Titik Terkunci">📌</span>
+                  {{ hoveredPoint.tanggal }}
+                </span>
+                <div class="flex items-center gap-1.5">
+                  <span 
+                    class="text-[9px] px-2 py-0.5 rounded-full font-bold border"
+                    :class="getStockStatus(hoveredPoint.balance).badgeClass"
+                  >
+                    {{ getStockStatus(hoveredPoint.balance).label }}
+                  </span>
+                  <button 
+                    v-if="isPinned"
+                    type="button"
+                    @click.stop="dismissActivePoint"
+                    class="p-0.5 -mr-1 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 rounded cursor-pointer leading-none text-xs"
+                    title="Tutup Tooltip"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-              <div class="space-y-0.5 text-[11px]">
-                <div class="text-blue-600 dark:text-blue-400 font-extrabold">Saldo Stok: {{ hoveredPoint.balance }} {{ currentItem.satuan }}</div>
-                <div class="text-emerald-600 dark:text-emerald-400">Masuk (IN): +{{ hoveredPoint.inQty }}</div>
-                <div class="text-rose-600 dark:text-rose-400">Keluar (OUT): -{{ hoveredPoint.outQty }}</div>
-                <div class="text-slate-400 text-[10px] mt-0.5 truncate">Doc: {{ hoveredPoint.noDocument || '-' }}</div>
+              <div class="space-y-1 text-[11px]">
+                <div class="flex items-center justify-between">
+                  <span class="text-zinc-500">Saldo Stok:</span>
+                  <span class="font-extrabold text-sm" :style="{ color: getStockStatus(hoveredPoint.balance).color }">
+                    {{ hoveredPoint.balance }} {{ currentItem?.satuan }}
+                  </span>
+                </div>
+                
+                <!-- Indikator Jarak Ambang Batas -->
+                <div v-if="effectiveSafetyStock > 0 && hoveredPoint.balance <= effectiveSafetyStock" class="text-rose-600 dark:text-rose-400 text-[10px] font-semibold bg-rose-50 dark:bg-rose-950/40 p-1 rounded border border-rose-200 dark:border-rose-900">
+                  ⚠️ Defisit Safety Stock: {{ effectiveSafetyStock - hoveredPoint.balance }} {{ currentItem?.satuan }}
+                </div>
+                <div v-else-if="effectiveRop > 0 && hoveredPoint.balance <= effectiveRop" class="text-amber-600 dark:text-amber-400 text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 p-1 rounded border border-amber-200 dark:border-amber-900">
+                  ⚠️ Di Bawah ROP: Selisih -{{ effectiveRop - hoveredPoint.balance }} {{ currentItem?.satuan }}
+                </div>
+                <div v-else-if="effectiveMaxStock > 0 && hoveredPoint.balance > effectiveMaxStock" class="text-purple-600 dark:text-purple-400 text-[10px] font-semibold bg-purple-50 dark:bg-purple-950/40 p-1 rounded border border-purple-200 dark:border-purple-900">
+                  ℹ️ Melampaui Maksimum: +{{ hoveredPoint.balance - effectiveMaxStock }} {{ currentItem?.satuan }}
+                </div>
+                <div v-else-if="effectiveSafetyStock > 0" class="text-emerald-600 dark:text-emerald-400 text-[10px]">
+                  ✅ Di Atas Safety Stock: +{{ hoveredPoint.balance - effectiveSafetyStock }} {{ currentItem?.satuan }}
+                </div>
+
+                <!-- Mutasi Masuk/Keluar & No Dokumen -->
+                <div class="pt-1 border-t border-zinc-100 dark:border-zinc-800 text-[10px] text-zinc-500 space-y-0.5">
+                  <div v-if="hoveredPoint.inQty > 0" class="text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Masuk (IN): +{{ hoveredPoint.inQty }}
+                  </div>
+                  <div v-if="hoveredPoint.outQty > 0" class="text-rose-600 dark:text-rose-400 font-semibold">
+                    Keluar (OUT): -{{ hoveredPoint.outQty }}
+                  </div>
+                  <div class="text-zinc-400 truncate">Doc: {{ hoveredPoint.noDocument || '-' }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -626,8 +986,8 @@
               <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-zinc-400 text-[10px]">Mutasi:</span>
                 <span v-if="row.type === 'REG'" class="text-xs text-slate-400 font-normal">0</span>
-                <span v-else-if="row.inQty > 0" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">+{{ row.inQty }} {{ currentItem.satuan }}</span>
-                <span v-else-if="row.outQty > 0" class="text-xs font-bold text-rose-600 dark:text-rose-400 font-mono">-{{ row.outQty }} {{ currentItem.satuan }}</span>
+                <span v-else-if="row.inQty > 0" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">+{{ row.inQty }} {{ currentItem?.satuan }}</span>
+                <span v-else-if="row.outQty > 0" class="text-xs font-bold text-rose-600 dark:text-rose-400 font-mono">-{{ row.outQty }} {{ currentItem?.satuan }}</span>
                 <span v-else class="text-xs text-zinc-400">-</span>
                 <span v-if="row.lineKeterangan || row.keterangan" class="text-[10px] text-zinc-400 truncate max-w-[120px] italic hidden xs:inline">
                   ({{ row.lineKeterangan || row.keterangan }})
@@ -637,7 +997,7 @@
               <div class="flex items-center gap-1 shrink-0">
                 <span class="text-[10px] text-zinc-400">Saldo:</span>
                 <span class="font-black text-xs text-zinc-950 dark:text-white font-mono">
-                  {{ row.balance }} <span class="text-[9.5px] font-normal text-zinc-400">{{ currentItem.satuan }}</span>
+                  {{ row.balance }} <span class="text-[9.5px] font-normal text-zinc-400">{{ currentItem?.satuan }}</span>
                 </span>
               </div>
             </div>
@@ -706,7 +1066,7 @@
                   <span v-else class="text-slate-300 dark:text-slate-600">-</span>
                 </td>
                 <td class="py-2.5 px-3 text-right font-black text-slate-900 dark:text-white bg-slate-100/30 dark:bg-slate-800/30 text-xs">
-                  {{ row.balance }} <span class="text-[10px] text-slate-400 font-normal">{{ currentItem.satuan }}</span>
+                  {{ row.balance }} <span class="text-[10px] text-slate-400 font-normal">{{ currentItem?.satuan }}</span>
                 </td>
                 <td class="py-2.5 px-3 text-slate-500 dark:text-slate-400 max-w-[220px] truncate">
                   {{ row.lineKeterangan || row.keterangan || '-' }}
@@ -727,32 +1087,44 @@
       </div>
     </div>
 
+    <!-- Fallback jika mode detail aktif tapi data item tidak ditemukan -->
+    <div v-else-if="currentMode === 'detail' && !currentItem" class="glass-card p-8 text-center space-y-3">
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+        <AlertCircle class="w-6 h-6" />
+      </div>
+      <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Item Tidak Ditemukan</h3>
+      <p class="text-xs text-slate-400">Data master barang ini mungkin belum dipilih atau telah dihapus.</p>
+      <button @click="resetToList()" class="px-4 py-2 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs">
+        &larr; Kembali ke Daftar Item
+      </button>
+    </div>
+
     <!-- ============================================================== -->
     <!-- MODAL ASISTEN KALKULATOR PPIC CERDAS (ITEM LEDGER)             -->
     <!-- ============================================================== -->
     <div 
       v-if="isPPICModalOpen && ppicCalcData" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/35 dark:bg-black/80 backdrop-blur-md p-3 sm:p-4 transition-all"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4 transition-all"
     >
-      <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl sm:rounded-3xl shadow-2xl shadow-emerald-500/10 dark:shadow-black/70 border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col max-h-[92vh] ring-1 ring-black/5 dark:ring-white/10">
-        <!-- Top Light Gradient Bar -->
-        <div class="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-blue-500"></div>
+      <div class="bg-white dark:bg-zinc-950 w-full max-w-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[92vh]">
+        <!-- Top Border Accent Line -->
+        <div class="h-1 w-full bg-zinc-950 dark:bg-white"></div>
 
-        <!-- Modal Header -->
-        <div class="px-5 sm:px-6 py-4 bg-gradient-to-b from-emerald-50/70 via-teal-50/20 to-white dark:from-slate-800/80 dark:to-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <!-- Modal Header Monokrom Elegan -->
+        <div class="px-5 sm:px-6 py-4 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/25 shadow-sm">
+            <div class="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center shadow-xs">
               <Calculator class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <h3 class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white flex items-center gap-1.5">
                 <span>Asisten Kalkulator PPIC Cerdas</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/25">Audit Min-Max</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-bold border border-zinc-300 dark:border-zinc-700">Audit Min-Max</span>
               </h3>
-              <p class="text-[11px] text-slate-400">Prediksi matematis batas stok berdasarkan mutasi keluar 90 hari.</p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Prediksi matematis batas stok berdasarkan mutasi keluar 90 hari.</p>
             </div>
           </div>
-          <button @click="isPPICModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <button @click="isPPICModalOpen = false" class="p-1.5 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer">
             <X class="w-5 h-5" />
           </button>
         </div>
@@ -832,31 +1204,31 @@
           <div class="space-y-2">
             <span class="font-bold text-[11px] uppercase tracking-wider text-slate-500 block">Hasil Kalkulasi Rekomendasi PPIC:</span>
             <div class="grid grid-cols-3 gap-2.5">
-              <div class="p-3 bg-blue-50/60 dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-900/50 text-center">
-                <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 block">Safety Stock</span>
-                <strong class="text-base font-black text-blue-700 dark:text-blue-300">{{ ppicCalcData.safetyStock }}</strong>
-                <span class="text-[9px] text-blue-500 block">Pengaman</span>
+              <div class="p-3 bg-zinc-100 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700 text-center">
+                <span class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 block">Safety Stock</span>
+                <strong class="text-base font-black text-zinc-900 dark:text-white">{{ ppicCalcData.safetyStock }}</strong>
+                <span class="text-[9px] text-zinc-400 block">Pengaman</span>
               </div>
 
-              <div class="p-3 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/50 text-center">
-                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 block">Min. Stok (ROP)</span>
-                <strong class="text-base font-black text-amber-700 dark:text-amber-300">{{ ppicCalcData.recommendedRop }}</strong>
-                <span class="text-[9px] text-amber-500 block">Titik Pesan</span>
+              <div class="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 text-center">
+                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 block">Min. Stok (ROP)</span>
+                <strong class="text-base font-black text-amber-700 dark:text-amber-400">{{ ppicCalcData.recommendedRop }}</strong>
+                <span class="text-[9px] text-amber-600/80 dark:text-amber-400/80 block">Titik Pesan</span>
               </div>
 
-              <div class="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-900/50 text-center">
-                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block">Maks. Stok</span>
-                <strong class="text-base font-black text-emerald-700 dark:text-emerald-300">{{ ppicCalcData.recommendedMaxStock }}</strong>
-                <span class="text-[9px] text-emerald-500 block">Kapasitas Aman</span>
+              <div class="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20 text-center">
+                <span class="text-[10px] font-bold text-purple-700 dark:text-purple-400 block">Maks. Stok</span>
+                <strong class="text-base font-black text-purple-700 dark:text-purple-400">{{ ppicCalcData.recommendedMaxStock }}</strong>
+                <span class="text-[9px] text-purple-600/80 dark:text-purple-400/80 block">Kapasitas Aman</span>
               </div>
             </div>
           </div>
 
           <!-- Ringkasan Rekomendasi Tindakan -->
-          <div class="p-3 bg-slate-100/70 dark:bg-slate-800/80 rounded-xl text-slate-700 dark:text-slate-300 text-[11px] space-y-1">
+          <div class="p-3 bg-zinc-100/70 dark:bg-zinc-800/80 rounded-xl text-zinc-700 dark:text-zinc-300 text-[11px] space-y-1 border border-zinc-200/60 dark:border-zinc-700">
             <div class="flex items-center justify-between">
               <span>Saran Order Pengadaan Saat Ini:</span>
-              <strong :class="ppicCalcData.suggestedOrderQty > 0 ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'">
+              <strong :class="ppicCalcData.suggestedOrderQty > 0 ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-emerald-700 dark:text-emerald-400 font-bold'">
                 {{ ppicCalcData.suggestedOrderQty > 0 ? `+${ppicCalcData.suggestedOrderQty} ${ppicCalcData.satuan} (Waktunya Reorder)` : 'Stok Aman' }}
               </strong>
             </div>
@@ -864,18 +1236,18 @@
         </div>
 
         <!-- Footer Modal -->
-        <div class="px-5 sm:px-6 py-3.5 bg-slate-50/80 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="px-5 sm:px-6 py-3.5 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between">
           <button 
             type="button" 
             @click="isPPICModalOpen = false" 
-            class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+            class="px-4 py-2 text-xs font-semibold text-zinc-600 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-xl transition-colors cursor-pointer"
           >
             Tutup
           </button>
           <button 
             type="button" 
             @click="applyPRICToItem" 
-            class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5"
+            class="px-4 py-2 text-xs font-bold text-white dark:text-zinc-950 bg-zinc-950 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <CheckCircle2 class="w-3.5 h-3.5" />
             <span>Simpan Perubahan ke Database</span>
@@ -905,7 +1277,12 @@ import {
   ShieldCheck,
   CheckCircle2,
   X,
-  Download
+  Download,
+  ShieldAlert,
+  AlertTriangle,
+  Layers,
+  Activity,
+  AlertCircle
 } from 'lucide-vue-next';
 import * as XLSX from 'xlsx';
 import { createStyledSheet } from '../utils/excelFormatter';
@@ -947,18 +1324,180 @@ const ledgerRows = ref([]);
 const ledgerCurrentPage = ref(1);
 const ledgerPageSize = ref(10);
 
-// State SVG Line Chart
-const chartWidth = 800;
-const chartHeight = 220;
+// State Mode Visualisasi Grafik: 'timeline' (Safety Envelope & Timeline Garis Kondisi Stok) | 'lines' (Tren 3 Garis: Masuk, Keluar, Saldo)
+const chartVisualizationMode = ref('timeline');
+const itemPPICMetrics = ref(null);
+
+// State SVG Line Chart (Optimized for Mobile & Desktop)
+const chartWidth = 860;
+const chartHeight = 250;
 const paddingLeft = 45;
-const paddingRight = 25;
-const paddingTop = 20;
+const paddingRight = 105;
+const paddingTop = 25;
 const paddingBottom = 30;
 const hoveredPoint = ref(null);
+const isPinned = ref(false);
+
+let lastTouchTimestamp = 0;
+let dismissCooldownUntil = 0;
+
+function handleTouchStart() {
+  lastTouchTimestamp = Date.now();
+}
+
+function setHoveredPoint(p, idx) {
+  // Abaikan event mouse sintetis akibat touch tap di mobile atau jika sedang dalam cooldown dismiss
+  if (Date.now() - lastTouchTimestamp < 600) return;
+  if (Date.now() < dismissCooldownUntil) return;
+  if (isPinned.value) return;
+  hoveredPoint.value = { ...p, x: getX(idx), y: getY(p.balance), idx };
+}
+
+function clearHoveredPoint() {
+  if (Date.now() - lastTouchTimestamp < 600) return;
+  if (isPinned.value) return;
+  hoveredPoint.value = null;
+}
+
+function toggleHoveredPoint(p, idx) {
+  const isCurrent = hoveredPoint.value?.idx === idx;
+  if (isPinned.value && isCurrent) {
+    // Unpin dan tutup tooltip
+    isPinned.value = false;
+    hoveredPoint.value = null;
+    dismissCooldownUntil = Date.now() + 450; // Cooldown 450ms agar mouse tidak langsung membuka kembali secara glitchy
+  } else {
+    // Kunci titik yang diklik
+    isPinned.value = true;
+    hoveredPoint.value = { ...p, x: getX(idx), y: getY(p.balance), idx };
+  }
+}
+
+function dismissActivePoint() {
+  isPinned.value = false;
+  hoveredPoint.value = null;
+  dismissCooldownUntil = Date.now() + 450;
+}
+
+// Penentuan Posisi Tooltip Cerdas (Edge Clamping agar tidak terpotong di layar HP)
+const tooltipStyle = computed(() => {
+  if (!hoveredPoint.value) return {};
+  const pctX = (hoveredPoint.value.x / chartWidth) * 100;
+  const pctY = (hoveredPoint.value.y / chartHeight) * 100;
+
+  let transform = 'translate(-50%, -100%)';
+  if (pctX < 22) {
+    transform = 'translate(-8%, -100%)';
+  } else if (pctX > 78) {
+    transform = 'translate(-92%, -100%)';
+  }
+
+  // Jika terlalu dekat dengan atap grafik, balikkan tooltip ke bawah
+  if (pctY < 32) {
+    transform = transform.replace('-100%', '20%');
+  }
+
+  return {
+    left: `${pctX}%`,
+    top: `${pctY}%`,
+    transform
+  };
+});
 
 const currentItem = computed(() => {
   return props.itemsWithStock.find(i => i.uniqCode === selectedUniqCode.value) || null;
 });
+
+// Ambang Batas Stok Efektif (Thresholds)
+const effectiveRop = computed(() => {
+  if (currentItem.value && Number(currentItem.value.minStock) > 0) {
+    return Number(currentItem.value.minStock);
+  }
+  if (itemPPICMetrics.value?.recommendedRop > 0) {
+    return Number(itemPPICMetrics.value.recommendedRop);
+  }
+  return 0;
+});
+
+const effectiveSafetyStock = computed(() => {
+  if (itemPPICMetrics.value?.safetyStock > 0) {
+    return Number(itemPPICMetrics.value.safetyStock);
+  }
+  if (effectiveRop.value > 0) {
+    return Math.max(1, Math.round(effectiveRop.value * 0.4));
+  }
+  return 0;
+});
+
+const effectiveMaxStock = computed(() => {
+  if (currentItem.value && Number(currentItem.value.maxStock) > 0) {
+    return Number(currentItem.value.maxStock);
+  }
+  if (itemPPICMetrics.value?.recommendedMaxStock > 0) {
+    return Number(itemPPICMetrics.value.recommendedMaxStock);
+  }
+  if (effectiveRop.value > 0) {
+    return Math.round(effectiveRop.value * 2.5);
+  }
+  return 0;
+});
+
+// Klasifikasi Kondisi & Status Ambang Batas per Saldo (Soft & Muted Colors)
+function getStockStatus(balance) {
+  const val = Number(balance) || 0;
+  const ss = effectiveSafetyStock.value;
+  const rop = effectiveRop.value;
+  const max = effectiveMaxStock.value;
+
+  if (val <= 0) {
+    return {
+      status: 'STOCKOUT',
+      label: 'Habis (Stockout)',
+      color: '#ef4444',
+      badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20',
+      isBreach: true,
+      breachType: 'SAFETY'
+    };
+  }
+  if (ss > 0 && val <= ss) {
+    return {
+      status: 'CRITICAL',
+      label: 'Di Bawah Safety Stock',
+      color: '#ef4444',
+      badgeClass: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20',
+      isBreach: true,
+      breachType: 'SAFETY'
+    };
+  }
+  if (rop > 0 && val <= rop) {
+    return {
+      status: 'WARNING',
+      label: 'Di Bawah ROP (Waspada)',
+      color: '#f59e0b',
+      badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20',
+      isBreach: true,
+      breachType: 'ROP'
+    };
+  }
+  if (max > 0 && val > max) {
+    return {
+      status: 'OVERSTOCK',
+      label: 'Overstock (> Maksimum)',
+      color: '#8b5cf6',
+      badgeClass: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20',
+      isBreach: false,
+      breachType: 'OVER'
+    };
+  }
+  return {
+    status: 'OPTIMAL',
+    label: 'Aman / Optimal',
+    color: '#10b981',
+    badgeClass: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20',
+    isBreach: false,
+    breachType: null
+  };
+}
 
 // Filter Katalog Master Item
 const filteredCatalogItems = computed(() => {
@@ -993,9 +1532,17 @@ const ledgerStats = computed(() => {
   const totalOut = ledgerRows.value.reduce((acc, curr) => acc + (curr.outQty || 0), 0);
   const currentBalance = ledgerRows.value.length > 0 
     ? ledgerRows.value[ledgerRows.value.length - 1].balance 
-    : 0;
+    : (Number(currentItem.value?.currentStock) || 0);
 
   return { totalIn, totalOut, currentBalance };
+});
+
+const currentItemStatus = computed(() => {
+  return getStockStatus(ledgerStats.value.currentBalance);
+});
+
+const breachCount = computed(() => {
+  return chartDataPoints.value.filter(p => getStockStatus(p.balance).isBreach).length;
 });
 
 const paginatedLedger = computed(() => {
@@ -1008,11 +1555,21 @@ const chartDataPoints = computed(() => {
   return ledgerRows.value;
 });
 
+// Perhitungan Max Chart Value yang Aman dari Call Stack Overflow (O(1) memory)
 const maxChartValue = computed(() => {
-  if (chartDataPoints.value.length === 0) return 10;
-  const maxVal = Math.max(
-    ...chartDataPoints.value.map(p => Math.max(p.balance || 0, p.inQty || 0, p.outQty || 0))
-  );
+  const points = chartDataPoints.value;
+  let maxVal = 10;
+  if (points.length > 0) {
+    maxVal = points.reduce((acc, p) => {
+      return Math.max(acc, p.balance || 0, p.inQty || 0, p.outQty || 0);
+    }, 10);
+  }
+  if (effectiveMaxStock.value > 0) {
+    maxVal = Math.max(maxVal, effectiveMaxStock.value);
+  }
+  if (effectiveRop.value > 0) {
+    maxVal = Math.max(maxVal, effectiveRop.value * 1.2);
+  }
   return Math.max(10, Math.ceil(maxVal * 1.15));
 });
 
@@ -1023,17 +1580,40 @@ const yAxisTicks = computed(() => {
 
 function getX(index) {
   const count = chartDataPoints.value.length;
-  if (count <= 1) return paddingLeft;
   const availWidth = chartWidth - paddingLeft - paddingRight;
+  if (count <= 1) return paddingLeft + availWidth / 2;
   return paddingLeft + (index / (count - 1)) * availWidth;
 }
 
 function getY(val) {
-  const max = maxChartValue.value;
+  const max = maxChartValue.value || 10;
   const availHeight = chartHeight - paddingTop - paddingBottom;
-  const clamped = Math.max(0, val || 0);
+  const clamped = Math.max(0, Number(val) || 0);
   return chartHeight - paddingBottom - (clamped / max) * availHeight;
 }
+
+// Dynamic Multi-Color Segments untuk Timeline Garis Ambang Batas
+const timelineSegments = computed(() => {
+  const pts = chartDataPoints.value;
+  if (pts.length < 2) return [];
+  const segments = [];
+  for (let i = 1; i < pts.length; i++) {
+    const pPrev = pts[i - 1];
+    const pCurr = pts[i];
+    const status = getStockStatus(pCurr.balance);
+    segments.push({
+      x1: getX(i - 1),
+      y1: getY(pPrev.balance),
+      x2: getX(i),
+      y2: getY(pCurr.balance),
+      color: status.color,
+      status: status.status,
+      prevBalance: pPrev.balance,
+      currBalance: pCurr.balance
+    });
+  }
+  return segments;
+});
 
 // SVG Line Paths (3 Lines: Masuk, Keluar, Saldo Stok)
 const inLinePath = computed(() => {
@@ -1089,22 +1669,45 @@ function resetToList() {
 
 defineExpose({ resetToList });
 
+// Flag dan Timer Debouncing untuk Mencegah Redundant Queries
+let isUpdatingDates = false;
+let loadLedgerTimer = null;
+
+function debouncedLoadLedger() {
+  if (loadLedgerTimer) clearTimeout(loadLedgerTimer);
+  loadLedgerTimer = setTimeout(() => {
+    loadLedger();
+  }, 40);
+}
+
 async function loadLedger() {
   if (!selectedUniqCode.value) {
     ledgerRows.value = [];
+    itemPPICMetrics.value = null;
     return;
   }
-  ledgerRows.value = await getItemLedgerHistory(
-    selectedUniqCode.value, 
-    startDate.value || null, 
-    endDate.value || null
-  );
-  ledgerCurrentPage.value = 1;
+  const uniq = selectedUniqCode.value;
+  const start = startDate.value || null;
+  const end = endDate.value || null;
+  const lt = Number(currentItem.value?.leadTime) || 7;
+
+  const [history, ppic] = await Promise.all([
+    getItemLedgerHistory(uniq, start, end),
+    calculateItemPPICMetrics(uniq, lt, 14)
+  ]);
+
+  // Hindari race-condition jika pengguna beralih barang lain saat request berjalan
+  if (selectedUniqCode.value === uniq) {
+    ledgerRows.value = history;
+    itemPPICMetrics.value = ppic;
+    ledgerCurrentPage.value = 1;
+  }
 }
 
 // Preset Rentang Waktu (7 Hari, 30 Hari, 90 Hari / 3 Bulan, Semua)
 function applyDatePreset(days) {
   activePreset.value = days;
+  isUpdatingDates = true;
   if (days === 0) {
     startDate.value = '';
     endDate.value = '';
@@ -1114,11 +1717,15 @@ function applyDatePreset(days) {
     startDate.value = start.toISOString().split('T')[0];
     endDate.value = end.toISOString().split('T')[0];
   }
-  loadLedger();
+  isUpdatingDates = false;
+  debouncedLoadLedger();
 }
 
 watch([selectedUniqCode, startDate, endDate], () => {
-  loadLedger();
+  if (isUpdatingDates) return;
+  if (currentMode.value === 'detail') {
+    debouncedLoadLedger();
+  }
 });
 
 watch(() => props.itemsWithStock, (newVal) => {
@@ -1178,9 +1785,9 @@ function downloadLedgerSummaryExcel() {
     'Deskripsi Barang': item.deskripsi,
     'Satuan': item.satuan,
     'Tgl Registrasi': item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '-',
-    'Total Masuk (IN)': item.totalIn || 0,
-    'Total Keluar (OUT)': item.totalOut || 0,
-    'Stok Akhir': item.currentStock || 0,
+    'Total Masuk (IN)': item.inQty ?? item.totalIn ?? 0,
+    'Total Keluar (OUT)': item.outQty ?? item.totalOut ?? 0,
+    'Stok Akhir': item.currentStock ?? 0,
     'Status Persediaan': item.isLowStock ? '🔴 Kritis (Di Bawah Min)' : '🟢 Aman',
     'Batas Min (ROP)': item.minStock || 0,
     'Batas Maks': item.maxStock || 0
